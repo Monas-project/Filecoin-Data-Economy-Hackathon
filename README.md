@@ -2,6 +2,27 @@
 
 ## How to work
 
+- setup
+
+  - `backend`
+
+    create `.env` & set below values
+
+    ```txt
+    PRIVATE_KEY=
+    GAS_REPORT=
+    COINMARKETCAP_API_KEY=
+    ```
+
+  - `frontend`
+
+    create `.env.local` & set below values
+
+    ```txt
+    NEXT_PUBLIC_ENABLE_TESTNETS=
+    NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=
+    ```
+
 - install
 
   ```Bash

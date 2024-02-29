@@ -50,7 +50,7 @@
 - smartcontract deploy
 
   ```bash
-  backend:deploy:filecoinCalibration
+  yarn backend:deploy:filecoinCalibration
   ```
 
 ### Reference

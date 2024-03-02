@@ -10,7 +10,6 @@ async def root():
 
 
 @app.get("/encrypt")
-async def encrypt(name: str, owner_id: str, parent: CryptTreeNode = None, isDirectory: bool = False, file_data: bytes = None):
-    node = CryptTreeNode.create_node(name, owner_id, isDirectory, parent, file_data)
-    
-    return {"greeting":"encrypt"}
+async def create(name: str, owner_id: str, parent: CryptTreeNode = None, isDirectory: bool = False, file_data: bytes = None):
+    new_node = CryptTreeNode.create_node(name, owner_id, isDirectory, parent, file_data)
+    return {"metadata": new_node.metadata, "keydata": new_node.keydata, "subfolder_key": new_node.subfolder_key}

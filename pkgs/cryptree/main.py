@@ -6,6 +6,8 @@ from crypt_tree_node import CryptTreeNode
 from pydantic import BaseModel, Field, validator
 from typing import Optional, Dict, List
 import base64
+from model import KeyData
+import ipfshttpclient
 
 app = FastAPI()
 @app.get("/")
@@ -21,7 +23,7 @@ class CreateNodeRequest(BaseModel):
     parent_cid: Optional[str] = None  # 親ノードのCID。親がいる場合はこれを使用します。
 
 @app.post("/encrypt")
-async def create(request: CreateNodeRequest):
+async def encrypt(request: CreateNodeRequest):
     # if request.file_data:
     #     file_data = base64.urlsafe_b64decode(request.file_data)
     # else:
@@ -40,5 +42,27 @@ async def create(request: CreateNodeRequest):
         "subfolder_key": new_node.subfolder_key
     }
 
-# @app.post("/decrypt")
-# async def access(request ): 
+class DecryptRequest(BaseModel):
+    cid: str
+    subfolder_key: str
+    enc_data_key: str
+
+@app.post("/decrypt")
+def decrypt_data(req: DecryptRequest):
+    try:
+        cid = req.cid
+        subfolder_key = base64.urlsafe_b64decode(req.subfolder_key.encode())
+        enc_data_key = base64.urlsafe_b64decode(req.enc_data_key.encode())
+        
+        # メタデータを取得
+        client = ipfshttpclient.connect()
+        enc_metadata = client.cat(cid)
+        # 復号化に必要なキーを取得
+        data_key = Fernet(subfolder_key).decrypt(enc_data_key).encode()
+        # Fernetオブジェクトを使用してメタデータを復号化
+        metadata = Fernet(data_key).decrypt(enc_metadata).decode()
+        print(metadata)
+        return {metadata: metadata}
+    except ValueError as e:
+        print(f"エラー: {e}")
+    

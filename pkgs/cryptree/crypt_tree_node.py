@@ -8,34 +8,14 @@ from fake_ipfs import FakeIPFS
 import ipfshttpclient
 import base64
 
+from model import Metadata, KeyData, ChildNodeInfo, CryptTreeNodeModel
+
 # 例: 環境変数 'TEST_ENV' が 'True' の場合にのみ実際の接続を行う
 if os.environ.get('TEST_ENV') != 'True':
     client = ipfshttpclient.connect()
 else:
     client = FakeIPFS()  # テスト用の偽のIPFSクライアント
-
-class ChildNodeInfo(BaseModel):
-    cid: str
-    sk: bytes
-
-class CryptTreeNode(BaseModel):
-    metadata: Dict
-    keydata: Dict
-    subfolder_key: bytes
-
-class Metadata(BaseModel):
-    name: str
-    owner_id: str
-    creation_date: datetime.datetime
-    file_cid: Optional[str] = None  # ファイルCIDはファイルノードでのみ設定されます
-    child_info: Optional[List[ChildNodeInfo]] = None
-class KeyData(BaseModel):
-    root_id: Optional[str] = None
-    root_key: Optional[str] = None  # base64エンコードされたルートキー
-    enc_file_key: Optional[str] = None
-    enc_data_key: Optional[str] = None
-
-class CryptTreeNode(BaseModel):
+class CryptTreeNode(CryptTreeNodeModel):
     metadata: Metadata
     # キーを保存するための辞書 本来は秘匿のために別の場所に保存する
     keydata: KeyData

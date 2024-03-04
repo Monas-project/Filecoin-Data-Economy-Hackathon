@@ -59,6 +59,12 @@
   yarn backend deploy:filecoinCalibration
   ```
 
+- task getBalance
+
+  ```bash
+  cd pkgs/backend && npx hardhat getBalance --account 0x51908F598A5e0d8F1A3bAbFa6DF76F9704daD072 --network filecoinCalibration
+  ```
+
 ### Reference
 
 1. [FEVM Quickstart](https://docs.filecoin.io/smart-contracts/developing-contracts/hardhat)

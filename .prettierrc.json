@@ -10,13 +10,6 @@
         "bracketSpacing": false,
         "explicitTypes": "preserve"
       }
-    },
-    {
-      "files": "*.ts",
-      "options": {
-        "semi": false,
-        "singleQuote": true
-      }
     }
   ]
 }

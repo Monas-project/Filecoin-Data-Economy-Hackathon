@@ -12,5 +12,8 @@
   },
   "workspaces": [
     "pkgs/*"
-  ]
+  ],
+  "dependencies": {
+    "@tableland/evm": "^5.0.0"
+  }
 }

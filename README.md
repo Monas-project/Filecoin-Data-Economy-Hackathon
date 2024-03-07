@@ -69,3 +69,6 @@
 
 1. [FEVM Quickstart](https://docs.filecoin.io/smart-contracts/developing-contracts/hardhat)
 2. [FileCoin Calibration - Explorer](https://calibration.filscan.io/en)
+3. [TableLand - GetStarted](https://docs.tableland.xyz/smart-contracts/get-started)
+4. [TableLand - HP](https://tableland.xyz/)
+5. [TableLand - Deployed contracts](https://docs.tableland.xyz/smart-contracts/deployed-contracts)

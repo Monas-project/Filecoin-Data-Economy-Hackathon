@@ -1,4 +1,5 @@
 import "@nomicfoundation/hardhat-toolbox";
+import "@tableland/hardhat";
 import "dotenv/config";
 import fs from "fs";
 import { HardhatUserConfig } from "hardhat/config";
@@ -25,6 +26,10 @@ if (!SKIP_LOAD) {
 
 const config: HardhatUserConfig = {
   solidity: "0.8.20",
+  localTableland: {
+    silent: false,
+    verbose: false,
+  },
   networks: {
     hardhat: {
       blockGasLimit: DEFAULT_BLOCK_GAS_LIMIT,

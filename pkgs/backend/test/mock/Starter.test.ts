@@ -8,6 +8,7 @@ import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { ethers, upgrades } from "hardhat";
 // Import your contracts from `contracts` directory
+import { Database } from "@tableland/sdk";
 import { type Starter } from "../../typechain-types";
 
 chai.use(chaiAsPromised);
@@ -21,11 +22,15 @@ describe("Starter contract", function () {
   let registry: TablelandTables;
   // Custom `Starter` contract
   let starter: Starter;
+  // Database Instance
+  let db: Database;
 
   // Deploy the`TablelandTables` registry contract once
   async function deployFixture() {
     // Set global accounts
     accounts = await ethers.getSigners();
+    // Create a database connection
+    db = new Database({ signer: accounts[0] });
     // Deploy `TablelandTables` to allow for table creates and mutates
     const TablelandTablesFactory = await ethers.getContractFactory(
       "TablelandTables"
@@ -33,7 +38,7 @@ describe("Starter contract", function () {
     registry = await (
       (await upgrades.deployProxy(
         TablelandTablesFactory,
-        ["http://localhost:8080/"],
+        ["http://127.0.0.1:8545/"],
         {
           kind: "uups",
         }
@@ -87,6 +92,20 @@ describe("Starter contract", function () {
     await expect(await starter.connect(accounts[1]).insertVal("hello"))
       .to.emit(registry, "RunSQL")
       .withArgs(starter.address, true, 1, anyValue, anyValue);
+
+    // get table name
+    const tableName = await starter.tableName();
+
+    // execute select query
+    // Read from the table
+    /*
+    const readStmt = `SELECT * FROM ${tableName}`;
+    const { results } = await db
+      .prepare(readStmt)
+      .all<{ id: number; val: string }>();
+    // check select result
+    console.log("result:", results[0]);
+    */
   });
 
   it("should call registry to update value", async function () {

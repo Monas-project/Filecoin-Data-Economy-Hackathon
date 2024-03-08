@@ -1,27 +1,17 @@
 import { ethers } from "hardhat";
+import "@nomiclabs/hardhat-ethers";
 
-/**
- * deploy TableLandSample contract script
- */
 async function main() {
-  console.log(
-    ` ============================================== [start] ================================================ `
-  );
+  const Starter = await ethers.getContractFactory("Starter");
+  const starter = await Starter.deploy();
 
-  // Deploy the TableLandSample contract
-  const TableLandSample = await ethers.getContractFactory("TableLandSample");
-  const tableLandSample = await TableLandSample.deploy();
-  console.log(
-    `TableLandSample contract deployed to ${tableLandSample.target}.\n`
-  );
+  await starter.deployed();
+  console.log(`Contract deployed to '${starter.address}'.\n`);
 
-  console.log(
-    ` =============================================== [end]  =============================================== `
-  );
+  const tableName = await starter.tableName();
+  console.log(`Table name '${tableName}' minted to contract.`);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
   console.error(error);
   process.exitCode = 1;

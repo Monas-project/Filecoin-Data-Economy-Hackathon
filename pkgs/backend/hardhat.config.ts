@@ -1,9 +1,14 @@
+import "@nomicfoundation/hardhat-chai-matchers";
 import "@nomicfoundation/hardhat-toolbox";
+import "@openzeppelin/hardhat-upgrades";
 import "@tableland/hardhat";
+import * as dotenv from "dotenv";
 import "dotenv/config";
 import fs from "fs";
+import "hardhat-dependency-compiler";
 import { HardhatUserConfig } from "hardhat/config";
 import path from "path";
+dotenv.config();
 
 const { PRIVATE_KEY, GAS_REPORT, COINMARKETCAP_API_KEY } = process.env;
 
@@ -25,10 +30,17 @@ if (!SKIP_LOAD) {
 }
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.20",
-  localTableland: {
-    silent: false,
-    verbose: false,
+  solidity: {
+    version: "0.8.19",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200,
+      },
+    },
+  },
+  dependencyCompiler: {
+    paths: ["@tableland/evm/contracts/TablelandTables.sol"],
   },
   networks: {
     hardhat: {
@@ -52,6 +64,10 @@ const config: HardhatUserConfig = {
     coinmarketcap: COINMARKETCAP_API_KEY,
     gasPriceApi:
       "https://api.etherscan.io/api?module=proxy&action=eth_gasPrice",
+  },
+  localTableland: {
+    silent: false,
+    verbose: false,
   },
 };
 

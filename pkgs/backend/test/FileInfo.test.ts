@@ -9,23 +9,22 @@ import chaiAsPromised from "chai-as-promised";
 import { ethers, upgrades } from "hardhat";
 // Import your contracts from `contracts` directory
 import { Database } from "@tableland/sdk";
-import { type Starter } from "../../typechain-types";
+import { FileInfo } from "../typechain-types";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-// Test smart contract deployment and method calls
-// Note: SQL *does not* get validated nor materialized in this environment
-describe("Starter contract", function () {
-  // Set global accounts and the Tableland registry contract
+describe("FileInfo contract", function () {
   let accounts: SignerWithAddress[];
   let registry: TablelandTables;
-  // Custom `Starter` contract
-  let starter: Starter;
-  // Database Instance
+  let fileInfo: FileInfo;
   let db: Database;
+  let sampleHash =
+    "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b953";
 
-  // Deploy the`TablelandTables` registry contract once
+  /**
+   * デプロイメソッド
+   */
   async function deployFixture() {
     // Set global accounts
     accounts = await ethers.getSigners();
@@ -49,74 +48,74 @@ describe("Starter contract", function () {
   // Deploy the fixture and `Starter` to ensure deterministic table IDs
   beforeEach(async function () {
     await loadFixture(deployFixture);
-    const StarterFactory = await ethers.getContractFactory("Starter");
-    starter = (await StarterFactory.deploy()) as Starter;
-    await starter.deployed();
+    const FileInfoFactory = await ethers.getContractFactory("FileInfo");
+    fileInfo = (await FileInfoFactory.deploy()) as FileInfo;
+    await fileInfo.deployed();
   });
 
   it("should deploy, create a table, and set the controller", async function () {
     // Check that the registry minted a table to the starter and set the controller
-    await expect(starter.deployTransaction)
+    await expect(fileInfo.deployTransaction)
       .to.emit(registry, "CreateTable")
-      .withArgs(starter.address, 1, anyValue) // Use `anyValue` instead of a CREATE TABLE statement
+      .withArgs(fileInfo.address, 1, anyValue) // Use `anyValue` instead of a CREATE TABLE statement
       .to.emit(registry, "SetController")
-      .withArgs(1, starter.address);
+      .withArgs(1, fileInfo.address);
   });
 
   it("should have the contract own the table", async function () {
-    expect(await registry.ownerOf(1)).to.equal(starter.address); // Table ID is `1` in this environment
+    expect(await registry.ownerOf(1)).to.equal(fileInfo.address); // Table ID is `1` in this environment
   });
 
   it("should have the correct policy set", async function () {
-    await starter.insertVal("hello");
+    await fileInfo.insertFileInfo(sampleHash, sampleHash);
     const tableEvents = await registry.queryFilter(registry.filters.RunSQL());
     const [event] = tableEvents ?? [];
     const policy = event.args?.policy;
     // Check the policy values are equal to those set in the contract
     expect(policy.allowInsert).to.equal(true);
     expect(policy.allowUpdate).to.equal(true);
-    expect(policy.allowDelete).to.equal(false);
+    expect(policy.allowDelete).to.equal(true);
     expect(policy.whereClause).to.equal("");
     expect(policy.withCheck).to.equal("");
-    expect(policy.updatableColumns).to.deep.equal(["val"]);
+    expect(policy.updatableColumns).to.deep.equal(["fileHash", "locationId"]);
   });
 
   it("should return the table name", async function () {
     // Custom getter method
-    expect(await starter.tableName()).to.equal("starter_table_31337_1");
+    expect(await fileInfo.getTableName()).to.equal("fileino_table_31337_1");
+  });
+
+  it("should return the table ID", async function () {
+    // Custom getter method
+    expect(await fileInfo.getTableId()).to.equal(1);
   });
 
   it("should call registry to insert value", async function () {
-    // Call the method externally, albeit, the contract is sending the SQL
-    // You *could* directly call the registry contract such that ACLs are enforced
-    await expect(await starter.connect(accounts[1]).insertVal("hello"))
+    await expect(
+      await fileInfo.connect(accounts[1]).insertFileInfo(sampleHash, sampleHash)
+    )
       .to.emit(registry, "RunSQL")
-      .withArgs(starter.address, true, 1, anyValue, anyValue);
-
-    // get table name
-    const tableName = await starter.tableName();
-
-    // execute select query
-    // Read from the table
-    /*
-    const readStmt = `SELECT * FROM ${tableName}`;
-    const { results } = await db
-      .prepare(readStmt)
-      .all<{ id: number; val: string }>();
-    // check select result
-    console.log("result:", results[0]);
-    */
+      .withArgs(fileInfo.address, true, 1, anyValue, anyValue);
   });
 
   it("should call registry to update value", async function () {
-    await expect(await starter.connect(accounts[1]).updateVal(1, "world"))
+    await expect(
+      fileInfo.connect(accounts[1]).updateFileInfo(1, sampleHash, sampleHash)
+    )
       .to.emit(registry, "RunSQL")
-      .withArgs(starter.address, true, 1, anyValue, anyValue);
+      .withArgs(fileInfo.address, true, 1, anyValue, anyValue);
   });
 
   it("should call registry to delete value", async function () {
-    await expect(await starter.connect(accounts[1]).deleteVal(1))
+    await expect(await fileInfo.connect(accounts[1]).deleteFileInfo(1))
       .to.emit(registry, "RunSQL")
-      .withArgs(starter.address, true, 1, anyValue, anyValue);
+      .withArgs(fileInfo.address, true, 1, anyValue, anyValue);
+  });
+
+  it("should be same Hash", async function () {
+    await fileInfo.setRootHash(sampleHash);
+    // get RootHash
+    const rootHash = await fileInfo.getRootHash();
+    expect(rootHash).to.equal(sampleHash);
   });
 });

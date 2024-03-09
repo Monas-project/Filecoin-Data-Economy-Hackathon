@@ -7,7 +7,7 @@
     "node": ">=16.0.0"
   },
   "scripts": {
-    "build": "hardhat compile",
+    "compile": "hardhat compile",
     "clean": "hardhat clean && rm -rf artifacts && rm -rf cache && rm -rf coverage && rm -f coverage.json",
     "up": "yarn && yarn build && hardhat node --network local-tableland",
     "lt": "hardhat node --network local-tableland",
@@ -15,6 +15,7 @@
     "deploy:up": "hardhat run scripts/deploy.ts --network localhost",
     "deploy:local": "hardhat run scripts/deploy.ts --network local-tableland",
     "deploy:mock:filecoinCalibration": "hardhat run scripts/mock/deploy.ts --network filecoinCalibration",
+    "deploy:filecoinCalibration": "hardhat run scripts/deploy.ts --network filecoinCalibration",
     "test": "hardhat coverage && istanbul check-coverage ./coverage.json --statements 100 --branches 95 --functions 100 --lines 100",
     "test:gas": "REPORT_GAS=true hardhat test",
     "lint:ts": "eslint '**/*.{js,ts}'",
@@ -65,6 +66,7 @@
     "@types/chai": "^4.2.0",
     "@types/mocha": ">=9.1.0",
     "chai": "^4.2.0",
+    "ethers": "5.7.2",
     "ts-node": "^10.9.2",
     "typechain": "^8.1.0",
     "typescript": "^5.4.2"

@@ -82,7 +82,7 @@ describe("FileInfo contract", function () {
 
   it("should return the table name", async function () {
     // Custom getter method
-    expect(await fileInfo.getTableName()).to.equal("fileino_table_31337_1");
+    expect(await fileInfo.getTableName()).to.equal("fileinfo_table_31337_1");
   });
 
   it("should return the table ID", async function () {

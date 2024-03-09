@@ -10,6 +10,9 @@ async function main() {
 
   const tableName = await fileInfo.getTableName();
   console.log(`Table name '${tableName}' minted to contract.`);
+
+  const tableId = await fileInfo.getTableId();
+  console.log(`Table ID '${tableId}' minted to contract.`);
 }
 
 main().catch((error) => {

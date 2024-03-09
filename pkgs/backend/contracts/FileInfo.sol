@@ -15,8 +15,27 @@ import {ERC721Holder} from "@openzeppelin/contracts/token/ERC721/utils/ERC721Hol
  */
 contract FileInfo is TablelandController, ERC721Holder {
   uint256 private tableId;
-  string private constant _TABLE_PREFIX = "fileino_table";
+  string private tableName;
+  string private constant _TABLE_PREFIX = "fileinfo_table";
   bytes32 private rootHash;
+
+  /// events
+
+  event TableCreated(uint256 tableId, string tableName);
+  event Insert(
+    uint256 tableId,
+    string tableName,
+    string fileHash,
+    string locationId
+  );
+  event Update(
+    uint256 tableId,
+    string tableName,
+    string fileHash,
+    string locationId
+  );
+  event Delete(uint256 tableId, string tableName);
+  event UpdateRootHash(bytes32 rootHash);
 
   /**
    * constructor
@@ -27,7 +46,7 @@ contract FileInfo is TablelandController, ERC721Holder {
       address(this),
       SQLHelpers.toCreateFromSchema(
         "id integer primary key,"
-        "filehash text,"
+        "fileHash text,"
         "locationId text",
         _TABLE_PREFIX
       )
@@ -38,6 +57,9 @@ contract FileInfo is TablelandController, ERC721Holder {
       tableId,
       address(this) // Set the controller
     );
+    tableName = SQLHelpers.toNameFromId(_TABLE_PREFIX, tableId);
+    // emit
+    emit TableCreated(tableId, tableName);
   }
 
   /**
@@ -53,7 +75,7 @@ contract FileInfo is TablelandController, ERC721Holder {
       SQLHelpers.toInsert(
         _TABLE_PREFIX,
         tableId,
-        "filehash, locationId",
+        "fileHash, locationId",
         string.concat(
           SQLHelpers.quote(_fileHash),
           ",",
@@ -61,6 +83,7 @@ contract FileInfo is TablelandController, ERC721Holder {
         )
       )
     );
+    emit Insert(tableId, tableName, _fileHash, _locationId);
   }
 
   /**
@@ -85,6 +108,7 @@ contract FileInfo is TablelandController, ERC721Holder {
       tableId,
       SQLHelpers.toUpdate(_TABLE_PREFIX, tableId, setters, filters)
     );
+    emit Update(tableId, tableName, _fileHash, _locationId);
   }
 
   /**
@@ -98,6 +122,8 @@ contract FileInfo is TablelandController, ERC721Holder {
       tableId,
       SQLHelpers.toDelete(_TABLE_PREFIX, tableId, filters)
     );
+
+    emit Delete(tableId, tableName);
   }
 
   /**
@@ -128,6 +154,7 @@ contract FileInfo is TablelandController, ERC721Holder {
    */
   function setRootHash(bytes32 _rootHash) external {
     rootHash = _rootHash;
+    emit UpdateRootHash(_rootHash);
   }
 
   /**

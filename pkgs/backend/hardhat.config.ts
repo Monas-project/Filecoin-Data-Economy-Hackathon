@@ -18,7 +18,7 @@ const GWEI = 1000 * 1000 * 1000;
 
 const SKIP_LOAD = process.env.SKIP_LOAD === "true";
 if (!SKIP_LOAD) {
-  const taskPaths = ["mock"];
+  const taskPaths = ["mock", "table"];
   taskPaths.forEach((folder) => {
     const tasksPath = path.join(__dirname, "tasks", folder);
     fs.readdirSync(tasksPath)

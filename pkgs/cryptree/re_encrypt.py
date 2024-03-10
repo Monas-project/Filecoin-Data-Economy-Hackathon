@@ -27,10 +27,11 @@ class Metadata(BaseModel):
 class KeyData(BaseModel):
     # TODO: 少なくとも1つのキーを持っていなかったらエラーが出るようにする, root関連がわかっていない
     root_id: Optional[str] = None
+    # TODO: str -> bytes
     root_key: Optional[str] = None
-    file_key: Optional[str] = None
+    file_key: Optional[bytes] = None
     # Nodeは必ずKeyDataを持つのでsubfolder_keyをここで管理
-    subfolder_key: Optional[str] = None
+    subfolder_key: Optional[bytes] = None
 
 class CrypTreeNode(BaseModel):
     metadata_cid: str

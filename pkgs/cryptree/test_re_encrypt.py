@@ -1,8 +1,12 @@
+import unittest
+
 from cryptography.fernet import Fernet
 from datetime import datetime
 import json
 
+from fake_ipfs import FakeIPFS
 from re_encrypt import CrypTreeNode, Metadata, KeyData
+
 
 def datetime_converter(o):
     if isinstance(o, datetime):
@@ -65,3 +69,23 @@ def display_node_info(node):
     print("file key:", node.keydata.file_key)
     print("subfolder key:", node.keydata.subfolder_key)
     print("----------------")
+
+
+class TestCrypTree(unittest.TestCase):
+    def setUp(self):
+        self.ipfs, self.root, self.child1, self.child1_2, self.leaf1_2_1 = self.setup_tree_structure()
+
+    def setup_tree_structure(self):
+        ipfs = FakeIPFS()
+
+        root = create_node_with_encrypted_metadata(ipfs, "root", "user1")
+        child1 = create_node_with_encrypted_metadata(ipfs, "child1", "user1")
+        child1_2 = create_node_with_encrypted_metadata(ipfs, "child1_2", "user1")
+        leaf1_2_1 = create_node_with_encrypted_metadata(ipfs, "leaf1_2_1", "user1", is_leaf=True, file_data=b"dummy data 1")
+
+        # build tree structure
+        root.add_child(child1)
+        child1.add_child(child1_2)
+        child1_2.add_child(leaf1_2_1)
+
+        return ipfs, root, child1, child1_2, leaf1_2_1

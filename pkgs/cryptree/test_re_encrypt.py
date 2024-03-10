@@ -48,3 +48,20 @@ def create_node_with_encrypted_metadata(ipfs, name, owner_id, is_leaf=False, fil
         parent=None,
     )
     return node
+
+def display_node_info(node):
+    print("----------------")
+    print(f"Data of {node.metadata.name}:")
+    print("MetaData:")
+    print("name:", node.metadata.name)
+    print("owner address:", node.metadata.owner_id)
+    print("created at:", node.metadata.created_at)
+    print("file CID:", node.metadata.file_cid)
+    print("child info:", True if node.metadata.child_info else False)
+    print("----------------")
+    print("KeyData:")
+    print("root id:", node.keydata.root_id)
+    print("root key:", node.keydata.root_key)
+    print("file key:", node.keydata.file_key)
+    print("subfolder key:", node.keydata.subfolder_key)
+    print("----------------")

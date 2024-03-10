@@ -33,3 +33,8 @@ class CryptTreeNode(BaseModel):
     keydata: KeyData
     parent: Optional['CryptTreeNode'] = None
     children: List['CryptTreeNode'] = []
+
+    @property
+    def is_leaf(self) -> bool:
+        # TODO: subfolderのcidがないことを確認する, 子孫がないことを確認する方が良いか
+        return self.metadata.file_cid is not None

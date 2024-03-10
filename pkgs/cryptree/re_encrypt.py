@@ -40,6 +40,10 @@ class CrypTreeNode(BaseModel):
     parent: Optional['CrypTreeNode'] = None
     children: List['CrypTreeNode'] = []
 
+    def add_child(self, child: 'CrypTreeNode'):
+        self.children.append(child)
+        child.parent = self
+
     @property
     def is_leaf(self) -> bool:
         # TODO: subfolderのcidがないことを確認する, 子孫がないことを確認する方が良いか

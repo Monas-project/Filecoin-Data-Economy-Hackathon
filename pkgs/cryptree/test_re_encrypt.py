@@ -93,3 +93,16 @@ class TestCrypTree(unittest.TestCase):
     def add_child(self, child: 'CrypTreeNode'):
         self.children.append(child)
         child.parent = self
+
+    # Test: python -m unittest test_re_encrypt.TestCrypTree.test_specific_node_cid_and_subfolder_key_updated
+    def test_specific_node_cid_and_subfolder_key_updated(self):
+        display_node_info(self.child1)
+        original_cid = self.child1.metadata_cid
+        original_subfolder_key = self.child1.keydata.subfolder_key
+        self.child1.re_encrypt_and_update(self.ipfs)
+        self.assertNotEqual(original_cid, self.child1.metadata_cid, "CID should have been updated.")
+        self.assertNotEqual(original_subfolder_key, self.child1.keydata.subfolder_key, "Subfolder key should have been updated.")
+
+if __name__ == "__main__":
+    unittest.main()
+    print("All tests passed successfully.")

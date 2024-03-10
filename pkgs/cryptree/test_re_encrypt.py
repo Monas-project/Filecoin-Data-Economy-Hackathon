@@ -89,3 +89,7 @@ class TestCrypTree(unittest.TestCase):
         child1_2.add_child(leaf1_2_1)
 
         return ipfs, root, child1, child1_2, leaf1_2_1
+
+    def add_child(self, child: 'CrypTreeNode'):
+        self.children.append(child)
+        child.parent = self

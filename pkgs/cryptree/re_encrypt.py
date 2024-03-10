@@ -1,6 +1,9 @@
+from cryptography.fernet import Fernet
 from datetime import datetime
 from pydantic import BaseModel, Field
 from typing import List, Optional
+
+from fake_ipfs import FakeIPFS
 
 # PythonのdatetimeオブジェクトはデフォルトではJSONシリアライズできない
 def datetime_converter(o):
@@ -49,3 +52,9 @@ class CryptTreeNode(BaseModel):
             return self.keydata.file_key
         else:
             return self.keydata.subfolder_key
+
+    def decrypt_data(self, encrypted_data_cid: str, ipfs_client: FakeIPFS) -> bytes:
+        key = self.get_encryption_key()
+        cipher_suite = Fernet(key)
+        decrypted_data = cipher_suite.decrypt(ipfs_client.cat(encrypted_data_cid))
+        return decrypted_data

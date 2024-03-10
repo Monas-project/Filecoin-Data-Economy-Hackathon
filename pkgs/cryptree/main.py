@@ -1,68 +1,126 @@
-from fastapi import FastAPI, HTTPException, Body
-import json
-import datetime
-from cryptography.fernet import Fernet
+from fastapi import Depends, APIRouter, FastAPI, HTTPException, status, Body
+from fastapi.security import OAuth2PasswordBearer
 from crypt_tree_node import CryptTreeNode
-from pydantic import BaseModel, Field, validator
-from typing import Optional, Dict, List
-import base64
-from model import KeyData
-import ipfshttpclient
+from datetime import datetime, timedelta
+from jose import jwt, JWTError
+from web3 import Web3
+from eth_account.messages import encode_defunct
+from tableland import get_root_info
+from model import GenerateRootNodeRequest, CreateNodeRequest
+import os
+from dotenv import load_dotenv
 
+# .envファイルの内容を読み込見込む
+load_dotenv()
+
+w3 = Web3()
 app = FastAPI()
-@app.get("/")
-async def root():
- return {"greeting":"Hello world"}
+router = APIRouter()
 
+SECRET_KEY = os.environ['API_SECRET_KEY']
+ALGORITHM = os.environ['ALGORITHM']
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+SECRET_MESSAGE = os.environ['SECRET_MESSAGE']
 
-class CreateNodeRequest(BaseModel):
-    name: str
-    owner_id: str
-    isDirectory: bool
-    file_data: Optional[bytes] = None
-    parent_cid: Optional[str] = None  # 親ノードのCID。親がいる場合はこれを使用します。
+# トークンの受け取り先URLを指定してOAuth2PasswordBearerインスタンスを作成
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
-@app.post("/encrypt")
-async def encrypt(request: CreateNodeRequest):
-    # if request.file_data:
-    #     file_data = base64.urlsafe_b64decode(request.file_data)
-    # else:
-    #     file_data = None
-    parent = None
-
+def get_current_user(token: str = Depends(oauth2_scheme)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
     try:
-        new_node = CryptTreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=request.isDirectory, parent=parent, file_data=request.file_data)
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        address: str = payload.get("sub")
+        if address is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    
+    root_id, root_key = get_root_info(address)
+    return {"address": address, "root_id": root_id, "root_key": root_key}
+
+def create_access_token(data: dict, expires_delta: timedelta = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)  # デフォルトの有効期限
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+@router.post("/users/me")
+async def read_users_me(current_user: dict = Depends(get_current_user)):
+    return current_user
+
+@router.post("/signup")
+async def signup(request: GenerateRootNodeRequest):
+    message = encode_defunct(text=SECRET_MESSAGE)
+    # 署名されたメッセージからアドレスを復元し、提供されたアドレスと比較
+    recovered_address = w3.eth.account.recover_message(message, signature=request.signature)
+    if recovered_address.lower() == request.owner_id.lower():
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": request.owner_id}, expires_delta=access_token_expires
+        )
+
+        try:
+            new_node = CryptTreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=request.isDirectory)
+        except Exception as e:
+            raise HTTPException(status_code=400, detail=str(e))
+        print("new_node.metadata")
+        print(new_node.metadata)
+        
+        return {"root_node": {
+            "metadata": new_node.metadata,
+            "subfolder_key": new_node.subfolder_key
+        }, "access_token": access_token, "token_type": "bearer"}
+    else:
+        raise HTTPException(status_code=401, detail="Invalid signature or address")
+
+@router.post("/login")
+async def login(signature: str = Body(...), address: str = Body(...)):
+    message = encode_defunct(text=SECRET_MESSAGE)
+    # 署名されたメッセージからアドレスを復元し、提供されたアドレスと比較
+    recovered_address = w3.eth.account.recover_message(message, signature=signature)
+    if recovered_address.lower() == address.lower():
+        # 有効な署名であればアクセストークンを生成
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = create_access_token(
+            data={"sub": address}, expires_delta=access_token_expires
+        )
+        root_id, root_key = get_root_info(address)
+        node = CryptTreeNode.get_node(root_id, root_key)
+        return {"current_node": node, "access_token": access_token, "token_type": "bearer"}
+    else:
+        raise HTTPException(status_code=401, detail="Invalid signature or address")
+
+
+@router.post("/create")
+async def create(request: CreateNodeRequest, current_user: dict = Depends(get_current_user)):
+    parent_cid = request.parent_cid
+    parent_subfolder_key = request.subfolder_key.encode()
+    current_node = CryptTreeNode.get_node(parent_cid, parent_subfolder_key)
+    file_data = request.file_data
+    try:
+        new_node = CryptTreeNode.create_node(name=request.name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-    print("new_node.metadata")
-    print(new_node.metadata)
     return {
         "metadata": new_node.metadata,
-        "keydata": new_node.keydata,
         "subfolder_key": new_node.subfolder_key
     }
 
-class DecryptRequest(BaseModel):
-    cid: str
-    subfolder_key: str
-    enc_data_key: str
+@router.post("/fetch")
+async def fetch(cid: str, subfolder_key: str, current_user: dict = Depends(get_current_user)):
+    node = CryptTreeNode.get_node(cid, subfolder_key)
+    return {
+        "metadata": node.metadata,
+        "subfolder_key": node.subfolder_key
+    }
 
-@app.post("/decrypt")
-def decrypt_data(req: DecryptRequest):
-    try:
-        cid = req.cid
-        subfolder_key = base64.urlsafe_b64decode(req.subfolder_key.encode())
-        enc_data_key = base64.urlsafe_b64decode(req.enc_data_key.encode())
-        
-        # メタデータを取得
-        client = ipfshttpclient.connect()
-        enc_metadata = client.cat(cid)
-        # 復号化に必要なキーを取得
-        data_key = Fernet(subfolder_key).decrypt(enc_data_key).encode()
-        # Fernetオブジェクトを使用してメタデータを復号化
-        metadata = Fernet(data_key).decrypt(enc_metadata).decode()
-        print(metadata)
-        return {metadata: metadata}
-    except ValueError as e:
-        print(f"エラー: {e}")
-    
+
+app.include_router(router, prefix="/api")

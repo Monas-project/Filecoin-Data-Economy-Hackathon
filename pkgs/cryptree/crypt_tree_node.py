@@ -6,37 +6,29 @@ import datetime
 from cryptography.fernet import Fernet
 from fake_ipfs import FakeIPFS
 import ipfshttpclient
-import base64
+from utils import search_subfolder_key, get_metadata
+from tableland import insert_root_info, update_root_id
 
-from model import Metadata, KeyData, ChildNodeInfo, CryptTreeNodeModel
+from model import Metadata, ChildNodeInfo, CryptTreeNodeModel
 
 # 例: 環境変数 'TEST_ENV' が 'True' の場合にのみ実際の接続を行う
 if os.environ.get('TEST_ENV') != 'True':
     client = ipfshttpclient.connect()
 else:
     client = FakeIPFS()  # テスト用の偽のIPFSクライアント
+
 class CryptTreeNode(CryptTreeNodeModel):
     metadata: Metadata
-    # キーを保存するための辞書 本来は秘匿のために別の場所に保存する
-    keydata: KeyData
     subfolder_key: str  # base64エンコードされたサブフォルダキー
-
-    # @validator('subfolder_key', pre=True, always=True)
-    # def validate_subfolder_key(cls, v):
-    #     if isinstance(v, bytes):
-    #         return base64.urlsafe_b64encode(v).decode()
-    #     return v
 
     # ノードを作成する
     @classmethod
     def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CryptTreeNode'] = None, file_data: Optional[bytes] = None) -> 'CryptTreeNode':
         # キー生成
         subfolder_key = Fernet.generate_key()
-        data_key = Fernet.generate_key()
         file_key = Fernet.generate_key() if not isDirectory else None
 
         # 暗号化スイートの初期化
-        dk_cipher_suite = Fernet(data_key)
         sk_cipher_suite = Fernet(subfolder_key)
         file_cipher_suite = Fernet(file_key) if file_key else None
 
@@ -46,132 +38,94 @@ class CryptTreeNode(CryptTreeNodeModel):
             "owner_id": owner_id,
             "creation_date": datetime.datetime.now().isoformat(),
             "file_cid": None,
+            "parent_info": None,
             "child_info": []
-        }
-
-        keydata = {
-            "root_id": None,
-            "root_key": None,
-            "enc_file_key": None,
-            "enc_data_key": None
         }
 
         # ファイルの場合、ファイルデータを暗号化
         if file_data and file_cipher_suite:
-            enc_file_data = file_cipher_suite.encrypt(file_data).decode()
-            file_cid = client.add_json(enc_file_data)
+            enc_file_data = file_cipher_suite.encrypt(file_data)
+            file_cid = client.add_bytes(enc_file_data)
             print("file_cid")
             print(file_cid)
             metadata["file_cid"] = file_cid
-            keydata["enc_file_key"] = dk_cipher_suite.encrypt(file_key).decode()
-
-        # keydata["enc_backlink_key"] = Fernet(
-        #     subfolder_key).encrypt(backlink_key).decode()
-
-        # つまりルートノード以外の場合？
-        # 今回は親subfolder_keyで子subfolder_keyを暗号化しない
-        # if parent is not None:
-        #     parent_info = json.dumps({
-        #         "name": parent.metadata["name"],
-        #     }).encode()
-        #     # metadata["parent"] = Fernet(backlink_key).encrypt(parent_info).decode()
-        #     metadata["parent"] = parent.metadata["cid"]
-        #     keydata["enc_subfolder_key"] = Fernet(
-        #         parent.subfolder_key).encrypt(subfolder_key).decode()
+            metadata["enc_file_key"] = sk_cipher_suite.encrypt(file_key)
+        
+        if parent is not None:
+            child_info: ChildNodeInfo = {
+                "cid": cid,
+                "sk": subfolder_key
+            }
+            parent.metadata["child_info"].append(child_info)
+            parent_subfolder_key: bytes = parent.subfolder_key
+            parent_sk_cipher_suite = Fernet(parent_subfolder_key)
+            parent_enc_metadata = parent_sk_cipher_suite.encrypt(json.dumps(parent.metadata).encode())
+            parent_cid = client.add_bytes(parent_enc_metadata)
+            metadata["parent_info"] = parent_cid
 
         # メタデータを暗号化してIPFSにアップロード
-        enc_metadata = dk_cipher_suite.encrypt(json.dumps(metadata).encode())
+        enc_metadata = sk_cipher_suite.encrypt(json.dumps(metadata).encode())
         cid = client.add_bytes(enc_metadata)
 
-        # ルートノードかどうかに応じてkeydataを設定
+        # # ルートノードの新規作成かどうかを判定
         if parent is None:
-            keydata["root_id"] = cid
-            keydata["root_key"] = base64.urlsafe_b64encode(data_key).decode()
+            insert_root_info(cid, subfolder_key)
         else:
-            keydata["enc_data_key"] = sk_cipher_suite.encrypt(data_key).decode()
-            parent.recursive_update_child_info(cid, subfolder_key)
-        
-        # keydata["enc_data_key"] = Fernet(
-        #     backlink_key).encrypt(data_key).decode()
+            print("parent_info")
+            grandparent_cid = parent.metadata.get("parent_info")
+            if grandparent_cid is not None:
+                parent.recursive_update_ancestor_child_info(parent_cid)
+            else:
+                txn_receipt, txn_hash = update_root_id(parent_cid, parent.subfolder_key)
+                # トランザクションハッシュをログに出力
+                print(f"root_id updated: {txn_hash.hex()}")
 
         # インスタンスの作成と返却
         return cls(
             metadata=metadata,
-            keydata=keydata,
-            subfolder_key=base64.urlsafe_b64encode(subfolder_key).decode()
+            subfolder_key=subfolder_key
         )
 
-    # 親ノードのchild_infoを再起的に更新
-    def recursive_update_child_info(self, child_cid: str, child_subfolder_key: bytes):
-        child_info: ChildNodeInfo = {
-            "cid": child_cid,
-            "sk": child_subfolder_key
-        }
-        self.metadata["child_info"] = child_info
+    # 先祖ノードのchild_infoを再起的に更新
+    def recursive_update_ancestor_child_info(self, new_cid: str):
+        # cidからsubfolder_keyを取得(実際はroot_idとroot_keyを使って、最上階層から復号化して探してきてる)
+        ancestor_cid = self.metadata["parent_info"]
+        ancestor_subfolder_key = search_subfolder_key(self.metadata["owner_id"], ancestor_cid)
 
-        is_root = (self.keydata.get("root_id") is not None) and (self.keydata.get("root_key") is not None)
+        ancestor_metadata: Metadata = get_metadata(ancestor_cid, ancestor_subfolder_key)
+        ancestor_node: CryptTreeNode = CryptTreeNode.get_parent_node(ancestor_metadata, ancestor_subfolder_key)
+        ancestor_child_info = ancestor_metadata["child_info"]
+        # 削除するchild_infoのindexと新しいchild_infoを取得
+        delete_index = None
+        update_child_info: ChildNodeInfo = None
 
-        # ルートノードの時はroot_keyをdata_keyに設定
-        if is_root:
-            data_key_bytes = self.keydata.get("root_key")
-        else:
-        # ルートノード以外の時は親subfolder_keyでdata_keyを復号化
-            enc_data_key: bytes = self.keydata["enc_data_key"]
-            parent_subfolder_key = self.parent.metadata.child_info["sk"]
-            data_key_bytes = Fernet(parent_subfolder_key).decrypt(enc_data_key.encode())
+        for index, child in enumerate(ancestor_child_info):
+            if child["sk"] == self.subfolder_key:
+                delete_index = index
+                update_child_info = {
+                    "cid": new_cid,
+                    "sk": self.subfolder_key
+                }
+        if delete_index is None:
+            raise ValueError("No child_info found for the given subfolder_key.")
+        del ancestor_child_info[delete_index]
+        ancestor_metadata["child_info"].append(update_child_info)
+        enc_ancestor_new_metadata = Fernet(ancestor_subfolder_key).encrypt(json.dumps(ancestor_node.metadata).encode())
+        ancestor_new_cid = client.add_bytes(enc_ancestor_new_metadata)
         
-        # メタデータをDKで暗号化してIPFSにアップロード
-        dk_cipher_suite = Fernet(data_key_bytes)
-        metadata_bytes = json.dumps(self.metadata).encode().encode()
-        enc_metadata = dk_cipher_suite.encrypt(metadata_bytes).decode()
-        cid = client.add_bytes(enc_metadata)
-
-        # ルートノードにぶち当たるまで再起的に呼び出して、メタデータを更新
-        if is_root:
-            self.keydata["root_id"] = cid
+        # parent_infoがある場合は再帰的に呼び出す ない場合はroot_idを更新
+        if ancestor_metadata.get("parent_info") is not None:
+            CryptTreeNode.instance(ancestor_metadata, ancestor_subfolder_key).recursive_update_ancestor_child_info(ancestor_new_cid)
         else:
-            parent_subfolder_key = self.parent.metadata["child_info"]["subfolder_key"]
-            self.parent.update_child_info(cid, parent_subfolder_key)
-
-    # def get_encrypted_metadata(self):
-    #     bk = Fernet(self.subfolder_key).decrypt(
-    #         self.keydata["enc_backlink_key"])
-    #     dk = Fernet(bk).decrypt(self.keydata["enc_data_key"])
-    #     f = Fernet(dk)
-    #     return f.encrypt(json.dumps(self.metadata).encode()).decode()
-
-    # def add_node(self, cid, name, path, is_directory):
-    #     if "child" not in self.metadata:
-    #         raise Exception("Only directory node can call this method")
-
-    #     self.metadata["child"][path] = {
-    #         "metadata_cid": cid,
-    #         "name": name,
-    #         "is_directory": is_directory
-    #     }
-
-    # def reencrypt(self, parent_sk: bytes, new_sk: bytes = None):
-    #     if new_sk is None:
-    #         new_sk = Fernet.generate_key()
-    #     new_bk = Fernet.generate_key()
-    #     new_dk = Fernet.generate_key()
-
-    #     keydata = {}
-    #     keydata["enc_subfolder_key"] = Fernet(
-    #         parent_sk).encrypt(new_sk).decode()
-    #     keydata["enc_backlink_key"] = Fernet(new_sk).encrypt(new_bk).decode()
-    #     keydata["enc_data_key"] = Fernet(new_bk).encrypt(new_dk).decode()
-
-    #     self.keydata = keydata
-    #     self.subfolder_key = new_sk
+            txn_receipt, txn_hash = update_root_id(ancestor_metadata["owner_id"], ancestor_new_cid)
+            # トランザクションハッシュをログに出力
+            print(f"root_id updated: {txn_hash.hex()}")
     
-
-    # def get_decrypt_key(self):
-    #     # 復号化に必要なキーを取得
-    #     bk = Fernet(self.subfolder_key).decrypt(
-    #         self.keydata["enc_backlink_key"].encode())
-    #     dk = Fernet(bk).decrypt(self.keydata["enc_data_key"].encode())
-
-    #     # Fernetオブジェクトを使用してメタデータを復号化
-    #     f = Fernet(dk)
-    #     return f
+    def get_node(cid: str, sk: bytes) -> 'CryptTreeNode':
+        client = ipfshttpclient.connect()
+        enc_metadata = client.cat(cid)
+        metadata = json.loads(Fernet(sk).decrypt(enc_metadata).decode())
+        return CryptTreeNode(metadata=metadata, subfolder_key=sk)
+    
+    def instance(cls, metadata: Metadata, sk: bytes) -> 'CryptTreeNode':
+        return CryptTreeNode(metadata=metadata, subfolder_key=sk)

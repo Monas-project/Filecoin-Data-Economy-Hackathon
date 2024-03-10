@@ -2,25 +2,32 @@ import datetime
 from typing import Optional, Dict, List
 from pydantic import BaseModel
 
-
 class ChildNodeInfo(BaseModel):
     cid: str
     sk: bytes
 
 class CryptTreeNodeModel(BaseModel):
     metadata: Dict
-    keydata: Dict
     subfolder_key: bytes
 
 class Metadata(BaseModel):
     name: str
     owner_id: str
     creation_date: datetime.datetime
+    parent_info: Optional[str] = None
+    child_info: List[ChildNodeInfo] = []
     file_cid: Optional[str] = None  # ファイルCIDはファイルノードでのみ設定されます
-    child_info: Optional[List[ChildNodeInfo]] = None
+    enc_file_key: Optional[bytes] = None  # ファイルノードでのみ設定されます
 
-class KeyData(BaseModel):
-    root_id: Optional[str] = None
-    root_key: Optional[str] = None  # base64エンコードされたルートキー
-    enc_file_key: Optional[str] = None
-    enc_data_key: Optional[str] = None
+class GenerateRootNodeRequest(BaseModel):
+    name: str
+    owner_id: str
+    isDirectory: bool
+    signature: str
+
+class CreateNodeRequest(BaseModel):
+    name: str
+    owner_id: str
+    parent_cid: str
+    subfolder_key: str = None  # 親ノードのサブフォルダキー。
+    file_data: Optional[bytes] = None

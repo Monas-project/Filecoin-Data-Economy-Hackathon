@@ -26,3 +26,10 @@ class KeyData(BaseModel):
     file_key: Optional[str] = None
     # Nodeは必ずKeyDataを持つのでsubfolder_keyをここで管理
     subfolder_key: Optional[str] = None
+
+class CryptTreeNode(BaseModel):
+    metadata_cid: str
+    metadata: Metadata
+    keydata: KeyData
+    parent: Optional['CryptTreeNode'] = None
+    children: List['CryptTreeNode'] = []

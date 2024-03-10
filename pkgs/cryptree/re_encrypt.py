@@ -38,3 +38,14 @@ class CryptTreeNode(BaseModel):
     def is_leaf(self) -> bool:
         # TODO: subfolderのcidがないことを確認する, 子孫がないことを確認する方が良いか
         return self.metadata.file_cid is not None
+
+    def get_encryption_key(self):
+        # TODO: root / subfolderの使い分け
+        # if self.is_root():
+        #     if self.keydata.root_key is None:
+        #         raise ValueError("root_key is not set")
+        #     return urlsafe_b64decode(self.keydata.root_key)
+        if self.is_leaf:
+            return self.keydata.file_key
+        else:
+            return self.keydata.subfolder_key

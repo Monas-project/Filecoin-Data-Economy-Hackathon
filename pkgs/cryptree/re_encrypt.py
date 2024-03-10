@@ -32,12 +32,12 @@ class KeyData(BaseModel):
     # Nodeは必ずKeyDataを持つのでsubfolder_keyをここで管理
     subfolder_key: Optional[str] = None
 
-class CryptTreeNode(BaseModel):
+class CrypTreeNode(BaseModel):
     metadata_cid: str
     metadata: Metadata
     keydata: KeyData
-    parent: Optional['CryptTreeNode'] = None
-    children: List['CryptTreeNode'] = []
+    parent: Optional['CrypTreeNode'] = None
+    children: List['CrypTreeNode'] = []
 
     @property
     def is_leaf(self) -> bool:

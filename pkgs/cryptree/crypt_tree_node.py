@@ -18,7 +18,7 @@ class ChildNodeInfo(BaseModel):
     cid: str
     sk: bytes
 
-class CryptTreeNode(BaseModel):
+class CrypTreeNode(BaseModel):
     metadata: Dict
     keydata: Dict
     subfolder_key: bytes
@@ -35,7 +35,7 @@ class KeyData(BaseModel):
     enc_file_key: Optional[str] = None
     enc_data_key: Optional[str] = None
 
-class CryptTreeNode(BaseModel):
+class CrypTreeNode(BaseModel):
     metadata: Metadata
     # キーを保存するための辞書 本来は秘匿のために別の場所に保存する
     keydata: KeyData
@@ -49,7 +49,7 @@ class CryptTreeNode(BaseModel):
 
     # ノードを作成する
     @classmethod
-    def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CryptTreeNode'] = None, file_data: Optional[bytes] = None) -> 'CryptTreeNode':
+    def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CrypTreeNode'] = None, file_data: Optional[bytes] = None) -> 'CrypTreeNode':
         # キー生成
         subfolder_key = Fernet.generate_key()
         data_key = Fernet.generate_key()

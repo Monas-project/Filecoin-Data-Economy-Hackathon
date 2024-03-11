@@ -2,7 +2,7 @@ from fastapi import FastAPI, HTTPException, Body
 import json
 import datetime
 from cryptography.fernet import Fernet
-from crypt_tree_node import CryptTreeNode
+from crypt_tree_node import CrypTreeNode
 from pydantic import BaseModel, Field, validator
 from typing import Optional, Dict, List
 import base64
@@ -29,7 +29,7 @@ async def create(request: CreateNodeRequest):
     parent = None
 
     try:
-        new_node = CryptTreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=request.isDirectory, parent=parent, file_data=request.file_data)
+        new_node = CrypTreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=request.isDirectory, parent=parent, file_data=request.file_data)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     print("new_node.metadata")

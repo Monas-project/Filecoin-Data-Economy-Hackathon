@@ -14,7 +14,7 @@ class Metadata(BaseModel):
     name: str
     owner_id: str
     creation_date: datetime.datetime
-    parent_info: Optional[str] = None
+    # parent_info: Optional[str] = None
     child_info: List[ChildNodeInfo] = []
     file_cid: Optional[str] = None  # ファイルCIDはファイルノードでのみ設定されます
     enc_file_key: Optional[bytes] = None  # ファイルノードでのみ設定されます
@@ -30,4 +30,4 @@ class CreateNodeRequest(BaseModel):
     owner_id: str
     parent_cid: str
     subfolder_key: str = None  # 親ノードのサブフォルダキー。
-    file_data: Optional[bytes] = None
+    file_data: Optional[str] = None

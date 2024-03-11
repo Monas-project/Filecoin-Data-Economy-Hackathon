@@ -3,6 +3,8 @@ from web3 import Web3, HTTPProvider
 import os
 from dotenv import load_dotenv
 import json
+from functools import lru_cache
+
 
 # .envファイルの内容を読み込見込む
 load_dotenv()
@@ -17,7 +19,7 @@ web3 = Web3(HTTPProvider(infura_url))
 private_key = os.environ['PRIVATE_KEY']
 if private_key is None:
     raise ValueError("No private key provided.")
-account = web3.eth.account.from_key(private_key).address
+admin_account = web3.eth.account.from_key(private_key).address
 
 # tablelandの設定
 address_column = "user_address"
@@ -43,17 +45,17 @@ def get_contract():
     return contract
     
 
-def insert_root_info(root_id: str, root_key: bytes):
+def insert_root_info(address: str, root_id: str, root_key: bytes):
     # Ethereumネットワークへの接続設定
     contract = get_contract()
 
     # 実行したいSQL文
-    statement = f"INSERT INTO {root_table_name} VALUES ('{account}', '{root_id}', '{root_key.decode()}');"
+    statement = f"INSERT INTO {root_table_name} VALUES ('{address}', '{root_id}', '{root_key.decode()}');"
 
     # トランザクションの構築
-    nonce = web3.eth.get_transaction_count(account)
+    nonce = web3.eth.get_transaction_count(admin_account)
     transaction = contract.functions.mutate(
-        account,
+        admin_account,
         table_id,
         statement
     ).build_transaction({
@@ -88,9 +90,9 @@ def update_root_id(address: str, new_cid: str):
     statement = f"update {root_table_name} set root_id = {new_cid} where {address_column} = {address};"
 
     # トランザクションの構築
-    nonce = web3.eth.get_transaction_count(account)
+    nonce = web3.eth.get_transaction_count(admin_account)
     transaction = contract.functions.mutate(
-        account,
+        admin_account,
         table_id,
         statement
     ).build_transaction({
@@ -139,6 +141,7 @@ def get_root_id(address: str) -> list[str, str]:
     return rows[0]["root_id"]
 
 # root_keyは別のとこから取ってくるけど一旦これで
+@lru_cache(maxsize=None)
 def get_root_info(address: str) -> list[str, bytes]:
     headers = {
         'Content-Type': 'application/json',

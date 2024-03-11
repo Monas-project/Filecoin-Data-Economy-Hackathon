@@ -104,8 +104,12 @@ async def create(request: CreateNodeRequest, current_user: dict = Depends(get_cu
     parent_cid = request.parent_cid
     parent_subfolder_key = request.subfolder_key.encode()
     current_node = CryptTreeNode.get_node(parent_cid, parent_subfolder_key)
-    file_data = request.file_data
+    print("current_node")
+    file_data = request.file_data.encode() if request.file_data else None
+    print("file_data")
+    print(file_data)
     try:
+        print("create_node")
         new_node = CryptTreeNode.create_node(name=request.name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data)
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))

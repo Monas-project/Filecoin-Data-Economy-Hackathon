@@ -13,13 +13,13 @@ def datetime_converter(o):
         return o.isoformat()
 
 def create_node_with_encrypted_metadata(ipfs, name, owner_id, is_leaf=False, file_data=None):
+    # TODO: rootのnodeかどうかを確認する
     root_key = Fernet.generate_key()
     file_key = Fernet.generate_key() if is_leaf else None
     subfolder_key = Fernet.generate_key() if not is_leaf else None
 
     key_data = KeyData(
-        # TODO: -> root_key=root_key
-        root_key=root_key.decode(),
+        root_key=root_key,
         file_key=file_key if file_key else None,
         subfolder_key=subfolder_key if subfolder_key else None,
     )

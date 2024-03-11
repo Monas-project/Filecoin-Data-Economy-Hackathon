@@ -1,7 +1,7 @@
 from cryptography.fernet import Fernet
 from datetime import datetime
 import json
-from pydantic import BaseModel, Field, parse_obj_as
+from pydantic import BaseModel, Field, parse_obj_as, model_validator, ValidationError
 from typing import List, Optional
 
 from fake_ipfs import FakeIPFS
@@ -22,15 +22,20 @@ class Metadata(BaseModel):
     file_cid: Optional[str] = None
     child_info: List[ChildNodeInfo] = []
 
-# TODO: データ構造を持つクラスとしてこれがベストなのかを考える
 class KeyData(BaseModel):
-    # TODO: 少なくとも1つのキーを持っていなかったらエラーが出るようにする, root関連がわかっていない
+    # TODO: root idをここで持つべきか？
     root_id: Optional[str] = None
-    # TODO: str -> bytes
-    root_key: Optional[str] = None
+    root_key: Optional[bytes] = None
     file_key: Optional[bytes] = None
-    # Nodeは必ずKeyDataを持つのでsubfolder_keyをここで管理
+    # Nodes always have KeyData, so subfolder_key is managed here.
     subfolder_key: Optional[bytes] = None
+
+    @model_validator(mode='after')
+    def ensure_at_least_one_key_is_set(cls, values):
+        keys_set = [values.root_key, values.file_key, values.subfolder_key]
+        if not any(keys_set):
+            raise ValueError('At least one of root_key, file_key, subfolder_key must be set.')
+        return values
 
 class CrypTreeNode(BaseModel):
     metadata_cid: str
@@ -43,6 +48,7 @@ class CrypTreeNode(BaseModel):
         self.children.append(child)
         child.parent = self
 
+    # TODO: 本当に@propertyを使うべきか？
     @property
     def is_leaf(self) -> bool:
         # TODO: subfolderのcidがないことを確認する, 子孫がないことを確認する方が良いか
@@ -65,6 +71,7 @@ class CrypTreeNode(BaseModel):
         decrypted_data = cipher_suite.decrypt(ipfs_client.cat(encrypted_data_cid))
         return decrypted_data
 
+    # TODO: 何をupdateしたいのかを追加するべきか？
     def re_encrypt_and_update(self, ipfs_client: FakeIPFS):
         if not self.is_leaf:
             decrypted_metadata = self.decrypt_data(self.metadata_cid, ipfs_client)

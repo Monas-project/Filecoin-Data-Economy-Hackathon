@@ -57,9 +57,7 @@ describe("FileInfo contract", function () {
     // Check that the registry minted a table to the starter and set the controller
     await expect(fileInfo.deployTransaction)
       .to.emit(registry, "CreateTable")
-      .withArgs(fileInfo.address, 1, anyValue) // Use `anyValue` instead of a CREATE TABLE statement
-      .to.emit(registry, "SetController")
-      .withArgs(1, fileInfo.address);
+      .withArgs(fileInfo.address, 1, anyValue); // Use `anyValue` instead of a CREATE TABLE statement
   });
 
   it("should have the contract own the table", async function () {
@@ -77,7 +75,7 @@ describe("FileInfo contract", function () {
     expect(policy.allowDelete).to.equal(true);
     expect(policy.whereClause).to.equal("");
     expect(policy.withCheck).to.equal("");
-    expect(policy.updatableColumns).to.deep.equal(["fileHash", "locationId"]);
+    expect(policy.updatableColumns).to.deep.equal([]);
   });
 
   it("should return the table name", async function () {

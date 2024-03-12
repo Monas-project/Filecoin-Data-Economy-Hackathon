@@ -73,3 +73,4 @@
 4. [TableLand - HP](https://tableland.xyz/)
 5. [TableLand - Deployed contracts](https://docs.tableland.xyz/smart-contracts/deployed-contracts)
 6. [Filfox Contract Verification API Documents](https://filfox.notion.site/Filfox-Contract-Verification-API-Documents-c48d361c949348acb0bf806871ddd2c2)
+7. [TableLand Studio](https://studio.tableland.xyz/mashharuki/monas)

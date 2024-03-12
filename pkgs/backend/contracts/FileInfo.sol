@@ -51,12 +51,6 @@ contract FileInfo is TablelandController, ERC721Holder {
         _TABLE_PREFIX
       )
     );
-    // Set the ACL controller to enable writes to others besides the table owner
-    TablelandDeployments.get().setController(
-      address(this), // Table owner
-      tableId,
-      address(this) // Set the controller
-    );
     tableName = SQLHelpers.toNameFromId(_TABLE_PREFIX, tableId);
     // emit
     emit TableCreated(tableId, tableName);

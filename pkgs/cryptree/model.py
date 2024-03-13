@@ -31,3 +31,8 @@ class CreateNodeRequest(BaseModel):
     parent_cid: str
     subfolder_key: str = None  # 親ノードのサブフォルダキー。
     file_data: Optional[str] = None
+
+
+class FetchNodeRequest(BaseModel):
+    cid: str
+    subfolder_key: str

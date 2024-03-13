@@ -95,34 +95,47 @@ class CryptTreeNode(CryptTreeNodeModel):
 
     @classmethod
     def update_all_nodes(cls, address: str, new_cid: str, target_subfolder_key: bytes):
+        print("update_all_nodes")
         root_id, root_key = get_root_info(address)
-        root_node_enc_metadata = client.cat(root_id)
-        root_node_metadata = json.loads(Fernet(root_key).decrypt(root_node_enc_metadata).decode())
-        root_node = cls.get_node(root_node_metadata, root_key)
+        print("root_id")
+        # root_node_enc_metadata = client.cat(root_id)
+        print("root_node_enc_metadata")
+        # root_node_metadata = json.loads(Fernet(root_key).decrypt(root_node_enc_metadata).decode())
+        print("root_node_metadata")
+        root_node = cls.get_node(root_id, root_key)
         print("root_node")
 
         def update_root_callback(address, new_root_id):
+            print("update_root_callback")
             update_root_id(address, new_root_id)
             
-        print("update_node")
-        cls.update_node(root_node, address, target_subfolder_key, new_cid, update_root_callback)
+        if root_node.subfolder_key == target_subfolder_key:
+            # root_node.metadata = new_cid
+            # enc_metadata = root_node.encrypt_metadata()
+            # new_cid = client.add_bytes(enc_metadata)
+            print("callbackinggg")
+            update_root_callback(address, new_cid)
+        else:
+            cls.update_node(root_node, address, target_subfolder_key, new_cid, update_root_callback)
 
     @classmethod
     def update_node(cls, node, address: str, target_subfolder_key: bytes, new_cid: str, callback):
-        child_info = node.metadata["child_info"]
+        child_info = node.metadata.child_info
+        print("child_info")
+        print(child_info)
         for index, child in enumerate(child_info):
-            child_node = cls.get_node(child["cid"], child["sk"])
-            if child_node.subfolder_key == target_subfolder_key:
-                child_node.metadata["child_info"][index]["cid"] = new_cid
-                # enc_metadata = Fernet(child_node.subfolder_key).encrypt(json.dumps(child_node.metadata).encode())
-                enc_metadata = child_node.encrypt_metadata()
+            if child.sk == target_subfolder_key:
+                node.metadata.child_info[index].cid = new_cid
+                enc_metadata = node.encrypt_metadata()
                 new_cid = client.add_bytes(enc_metadata)
+                print("callbacking")
                 callback(address, new_cid)
                 break
             else:
-                if len(child_node.metadata["child_info"]) > 0:
+                child_node = cls.get_node(child.cid, child.sk)
+                if len(child_node.metadata.child_info) > 0:
                     def update_all_again_callback(address, new_cid):
-                        cls.update_all_nodes(address, new_cid, child_node.subfolder_key)
+                        cls.update_all_nodes(address, new_cid, node.subfolder_key)
                     cls.update_node(child_node, address, target_subfolder_key, new_cid, update_all_again_callback)
         
     @classmethod

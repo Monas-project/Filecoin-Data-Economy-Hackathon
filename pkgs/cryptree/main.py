@@ -6,9 +6,12 @@ from jose import jwt, JWTError
 from web3 import Web3
 from eth_account.messages import encode_defunct
 from tableland import get_root_info
-from model import GenerateRootNodeRequest, CreateNodeRequest
+from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest
 import os
 from dotenv import load_dotenv
+import ipfshttpclient
+from cryptography.fernet import Fernet
+import json
 
 # .envファイルの内容を読み込見込む
 load_dotenv()
@@ -119,12 +122,13 @@ async def create(request: CreateNodeRequest, current_user: dict = Depends(get_cu
     }
 
 @router.post("/fetch")
-async def fetch(cid: str, subfolder_key: str, current_user: dict = Depends(get_current_user)):
-    node = CryptTreeNode.get_node(cid, subfolder_key)
-    return {
-        "metadata": node.metadata,
-        "subfolder_key": node.subfolder_key
-    }
+async def fetch(request: FetchNodeRequest, current_user: dict = Depends(get_current_user)):
+    print("fetch")
+    subfolder_key = request.subfolder_key
+    print("subfolder_key")
+    cid = request.cid
+    print("cid")
+    return CryptTreeNode.get_node(cid, subfolder_key)
 
 
 app.include_router(router, prefix="/api")

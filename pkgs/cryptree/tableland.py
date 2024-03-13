@@ -87,7 +87,7 @@ def update_root_id(address: str, new_cid: str):
     contract = get_contract();
 
     # 実行したいSQL文
-    statement = f"update {root_table_name} set root_id = {new_cid} where {address_column} = {address};"
+    statement = f"update {root_table_name} set root_id = '{new_cid}' where {address_column} = '{address}';"
 
     # トランザクションの構築
     nonce = web3.eth.get_transaction_count(admin_account)
@@ -107,9 +107,14 @@ def update_root_id(address: str, new_cid: str):
     print(transaction)
     # トランザクションの署名
     signed_txn = web3.eth.account.sign_transaction(transaction, private_key)
+    
+    print("signed_txn")
+    print(signed_txn)
 
     # トランザクションの送信
     txn_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+    print("txn_hash")
+    print(txn_hash)
 
     # トランザクションのハッシュ値を出力
     print(f"Transaction hash: {txn_hash.hex()}")

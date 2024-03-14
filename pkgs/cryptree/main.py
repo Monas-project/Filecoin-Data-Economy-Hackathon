@@ -72,8 +72,6 @@ async def signup(request: GenerateRootNodeRequest):
             new_node = CryptTreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=request.isDirectory)
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
-        print("new_node.metadata")
-        print(new_node.metadata)
         
         return {"root_node": {
             "metadata": new_node.metadata,
@@ -105,12 +103,8 @@ async def create(request: CreateNodeRequest, current_user: dict = Depends(get_cu
     parent_cid = request.parent_cid
     parent_subfolder_key = request.subfolder_key.encode()
     current_node = CryptTreeNode.get_node(parent_cid, parent_subfolder_key)
-    print("current_node")
     file_data = request.file_data.encode() if request.file_data else None
-    print("file_data")
-    print(file_data)
     try:
-        print("create_node")
         new_node = CryptTreeNode.create_node(name=request.name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data)
 
     except Exception as e:
@@ -122,11 +116,8 @@ async def create(request: CreateNodeRequest, current_user: dict = Depends(get_cu
 
 @router.post("/fetch")
 async def fetch(request: FetchNodeRequest, current_user: dict = Depends(get_current_user)):
-    print("fetch")
     subfolder_key = request.subfolder_key
-    print("subfolder_key")
     cid = request.cid
-    print("cid")
     return CryptTreeNode.get_node(cid, subfolder_key)
 
 

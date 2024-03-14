@@ -3,168 +3,88 @@ from web3 import Web3, HTTPProvider
 import os
 from dotenv import load_dotenv
 import json
-from functools import lru_cache
 
+class Tableland:
+    # クラス変数の初期化
+    load_dotenv()
+    infura_project_id = os.getenv('INFURA_PROJECT_ID')
+    infura_base_url = os.getenv('INFURA_BASE_URL')
+    private_key = os.getenv('PRIVATE_KEY')
+    table_contract_address = os.getenv('TABLE_CONTRACT_ADDRESS')
+    tableland_url = 'https://testnets.tableland.network/api/v1/query'
+    address_column = "user_address"
+    table_id = 8603
+    chain_id = 80001
+    root_table_name = f"users_{chain_id}_{table_id}"
 
-# .envファイルの内容を読み込見込む
-load_dotenv()
-
-# web3.pyインスタンスの作成
-infura_project_id = os.environ['INFURA_PROJECT_ID']
-infura_base_url = os.environ['INFURA_BASE_URL']
-if infura_project_id is None or infura_base_url is None:
-    raise ValueError("No Infura project ID or base URL provided.")
-infura_url = f"{infura_base_url}/{infura_project_id}"
-web3 = Web3(HTTPProvider(infura_url))
-private_key = os.environ['PRIVATE_KEY']
-if private_key is None:
-    raise ValueError("No private key provided.")
-admin_account = web3.eth.account.from_key(private_key).address
-
-# tablelandの設定
-address_column = "user_address"
-table_id = 8603
-chain_id = 80001
-root_table_name = f"users_{chain_id}_{table_id}"
-tableland_url = 'https://testnets.tableland.network/api/v1/query'
-
-def get_contract():
-    table_contract_address =os.environ['TABLE_CONTRACT_ADDRESS']
-    if table_contract_address is None:
-        raise ValueError("No contract address provided.")
-    contract_address = Web3.to_checksum_address(table_contract_address)
-    # JSONファイルを読み込む
-    with open('tableland_abi.json', 'r') as f:
-        data = json.load(f)
-
-    # 読み込んだデータを表示
-    contract_abi = data  # コントラクトのABIをここに設定
-
-    # コントラクトのインスタンスを作成
-    contract = web3.eth.contract(address=contract_address, abi=contract_abi)
-    return contract
+    if not (infura_project_id and infura_base_url and private_key and table_contract_address):
+        raise ValueError("Environment variables not properly configured.")
     
-
-def insert_root_info(address: str, root_id: str, root_key: bytes):
-    # Ethereumネットワークへの接続設定
-    contract = get_contract()
-
-    # 実行したいSQL文
-    statement = f"INSERT INTO {root_table_name} VALUES ('{address}', '{root_id}', '{root_key.decode()}');"
-
-    # トランザクションの構築
-    nonce = web3.eth.get_transaction_count(admin_account)
-    transaction = contract.functions.mutate(
-        admin_account,
-        table_id,
-        statement
-    ).build_transaction({
-        'chainId': chain_id,
-        'gas': 2000000,
-        'maxPriorityFeePerGas': web3.to_wei('2', 'gwei'),
-        'maxFeePerGas': web3.to_wei('50', 'gwei'),
-        'nonce': nonce,
-    })
+    infura_url = f"{infura_base_url}/{infura_project_id}"
+    web3 = Web3(HTTPProvider(infura_url))
+    admin_account = web3.eth.account.from_key(private_key).address
     
-    print("insert transaction")
-    print(transaction)
-    # トランザクションの署名
-    signed_txn = web3.eth.account.sign_transaction(transaction, private_key)
-
-    # トランザクションの送信
-    txn_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-
-    # トランザクションのハッシュ値を出力
-    print(f"Transaction hash: {txn_hash.hex()}")
-
-    # トランザクションのレシートを待つ（オプション）
-    txn_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)
-    print(f"Transaction receipt: {txn_receipt}")
-    return txn_receipt, txn_hash
-
-def update_root_id(address: str, new_cid: str):
-    # Ethereumネットワークへの接続設定
-    contract = get_contract();
-
-    # 実行したいSQL文
-    statement = f"update {root_table_name} set root_id = '{new_cid}' where {address_column} = '{address}';"
-
-    # トランザクションの構築
-    nonce = web3.eth.get_transaction_count(admin_account)
-    transaction = contract.functions.mutate(
-        admin_account,
-        table_id,
-        statement
-    ).build_transaction({
-        'chainId': chain_id,
-        'gas': 2000000,
-        'maxPriorityFeePerGas': web3.to_wei('2', 'gwei'),
-        'maxFeePerGas': web3.to_wei('50', 'gwei'),
-        'nonce': nonce,
-    })
+    @classmethod
+    def get_contract(cls):
+        contract_address = Web3.to_checksum_address(cls.table_contract_address)
+        with open('tableland_abi.json', 'r') as f:
+            contract_abi = json.load(f)
+        return cls.web3.eth.contract(address=contract_address, abi=contract_abi)
     
-    print("update transaction")
-    print(transaction)
-    # トランザクションの署名
-    signed_txn = web3.eth.account.sign_transaction(transaction, private_key)
+    @classmethod
+    def insert_root_info(cls, address: str, root_id: str, root_key: bytes):
+        contract = cls.get_contract()
+        statement = f"INSERT INTO {cls.root_table_name} VALUES ('{address}', '{root_id}', '{root_key.decode()}');"
+        nonce = cls.web3.eth.get_transaction_count(cls.admin_account)
+        transaction = cls.build_transaction(contract, statement, nonce)
+        return cls.send_transaction(transaction)
     
-    print("signed_txn")
-    print(signed_txn)
-
-    # トランザクションの送信
-    txn_hash = web3.eth.send_raw_transaction(signed_txn.rawTransaction)
-    print("txn_hash")
-    print(txn_hash)
-
-    # トランザクションのハッシュ値を出力
-    print(f"Transaction hash: {txn_hash.hex()}")
-
-    # トランザクションのレシートを待つ（オプション）
-    txn_receipt = web3.eth.wait_for_transaction_receipt(txn_hash)
-    print(f"Transaction receipt: {txn_receipt}")
-    return txn_receipt, txn_hash
-
-def get_root_id(address: str) -> list[str, str]:
+    @classmethod
+    def update_root_id(cls, address: str, new_cid: str):
+        contract = cls.get_contract()
+        statement = f"UPDATE {cls.root_table_name} SET root_id = '{new_cid}' WHERE {cls.address_column} = '{address}';"
+        nonce = cls.web3.eth.get_transaction_count(cls.admin_account)
+        transaction = cls.build_transaction(contract, statement, nonce)
+        return cls.send_transaction(transaction)
     
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
-    statement = f"select * from {root_table_name} where {address_column} = '{address}';"
+    @classmethod
+    def get_root_info(cls, address: str) -> list[str, bytes]:
+        statement = f"SELECT * FROM {cls.root_table_name} WHERE {cls.address_column} = '{address}';"
+        response = cls.execute_statement(statement)
+        rows = response.json()
+        if len(rows) == 0:
+            raise ValueError("No rows found for the given address.")
+        return rows[0]["root_id"], rows[0]["root_key"].encode()
 
-    data = {
-        "statement": statement,
-        "format": "objects",
-        "extract": False,
-        "unwrap": False
-    }
-
-    response = requests.post(tableland_url, headers=headers, json=data)
-    rows = response.json()
-    if len(rows) == 0:
-        raise ValueError("No rows found for the given address.")
-    return rows[0]["root_id"]
-
-# root_keyは別のとこから取ってくるけど一旦これで
-@lru_cache(maxsize=None)
-def get_root_info(address: str) -> list[str, bytes]:
-    headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-    }
-    statement = f"select * from {root_table_name} where {address_column} = '{address}';"
-
-    data = {
-        "statement": statement,
-        "format": "objects",
-        "extract": False,
-        "unwrap": False
-    }
-
-    response = requests.post(tableland_url, headers=headers, json=data)
-    rows = response.json()
-    if len(rows) == 0:
-        raise ValueError("No rows found for the given address.")
-    return rows[0]["root_id"], rows[0]["root_key"].encode()
-
+    @classmethod
+    def build_transaction(cls, contract, statement, nonce):
+        transaction = contract.functions.mutate(
+            cls.admin_account,
+            cls.table_id,
+            statement
+        ).build_transaction({
+            'chainId': cls.chain_id,
+            'gas': 2000000,
+            'maxPriorityFeePerGas': cls.web3.to_wei('2', 'gwei'),
+            'maxFeePerGas': cls.web3.to_wei('50', 'gwei'),
+            'nonce': nonce,
+        })
+        return transaction
     
+    @classmethod
+    def send_transaction(cls, transaction):
+        signed_txn = cls.web3.eth.account.sign_transaction(transaction, cls.private_key)
+        txn_hash = cls.web3.eth.send_raw_transaction(signed_txn.rawTransaction)
+        txn_receipt = cls.web3.eth.wait_for_transaction_receipt(txn_hash)
+        return txn_receipt, txn_hash.hex()
+
+    @classmethod
+    def execute_statement(cls, statement):
+        headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
+        data = {"statement": statement, "format": "objects", "extract": False, "unwrap": False}
+        response = requests.post(cls.tableland_url, headers=headers, json=data)
+        return response
+
+# 使用例
+# Tableland.insert_root_info('0x...', 'Qm...', b'...')
+# Tableland.update_root_id('0x...', 'Qm

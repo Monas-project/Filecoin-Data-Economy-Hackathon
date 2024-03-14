@@ -6,8 +6,8 @@ import datetime
 from cryptography.fernet import Fernet
 from fake_ipfs import FakeIPFS
 import ipfshttpclient
-from tableland import insert_root_info, update_root_id, get_root_info
 from model import Metadata, ChildNodeInfo, CryptTreeNodeModel
+from tableland import Tableland
 
 # 例: 環境変数 'TEST_ENV' が 'True' の場合にのみ実際の接続を行う
 if os.environ.get('TEST_ENV') != 'True':
@@ -21,7 +21,7 @@ class CryptTreeNode(CryptTreeNodeModel):
 
     # ノードを作成する
     @classmethod
-    def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CrypTreeNode'] = None, file_data: Optional[bytes] = None) -> 'CrypTreeNode':
+    def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CryptTreeNode'] = None, file_data: Optional[bytes] = None) -> 'CryptTreeNode':
         # キー生成
         subfolder_key = Fernet.generate_key()
         file_key = Fernet.generate_key() if not isDirectory else None
@@ -52,7 +52,7 @@ class CryptTreeNode(CryptTreeNodeModel):
 
         # # ルートノードの新規作成かどうかを判定
         if parent is None:
-            insert_root_info(owner_id, cid, subfolder_key)
+            Tableland.insert_root_info(owner_id, cid, subfolder_key)
         else:
             child_info: ChildNodeInfo = {
                 "cid": cid,
@@ -74,11 +74,11 @@ class CryptTreeNode(CryptTreeNodeModel):
 
     @classmethod
     def update_all_nodes(cls, address: str, new_cid: str, target_subfolder_key: bytes):
-        root_id, root_key = get_root_info(address)
+        root_id, root_key = Tableland.get_root_info(address)
         root_node = cls.get_node(root_id, root_key)
 
         def update_root_callback(address, new_root_id):
-            update_root_id(address, new_root_id)
+            Tableland.update_root_id(address, new_root_id)
             
         if root_node.subfolder_key == target_subfolder_key:
             update_root_callback(address, new_cid)
@@ -86,7 +86,7 @@ class CryptTreeNode(CryptTreeNodeModel):
             cls.update_node(root_node, address, target_subfolder_key, new_cid, update_root_callback)
 
     @classmethod
-    def update_node(cls, node, address: str, target_subfolder_key: str, new_cid: str, callback):
+    def update_node(cls, node: 'CryptTreeNode', address: str, target_subfolder_key: str, new_cid: str, callback):
         child_info = node.metadata.child_info
         for index, child in enumerate(child_info):
             child_subfolder_key = child.sk.decode()

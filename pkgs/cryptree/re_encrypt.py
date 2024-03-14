@@ -5,15 +5,12 @@ from pydantic import BaseModel, Field, parse_obj_as, model_validator, Validation
 from typing import List, Optional
 
 from fake_ipfs import FakeIPFS
+from model import ChildNodeInfo
 
 # PythonのdatetimeオブジェクトはデフォルトではJSONシリアライズできない
 def datetime_converter(o):
     if isinstance(o, datetime):
         return o.isoformat()
-
-class ChildNodeInfo(BaseModel):
-    cid: str
-    sk: bytes
 
 class Metadata(BaseModel):
     name: str

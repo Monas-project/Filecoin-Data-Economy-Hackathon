@@ -1,5 +1,5 @@
-from pydantic import BaseModel, Field, validator
-from typing import Optional, Dict, List
+from pydantic import Field
+from typing import Optional
 import os
 import json
 import datetime
@@ -7,7 +7,6 @@ from cryptography.fernet import Fernet
 from fake_ipfs import FakeIPFS
 import ipfshttpclient
 from tableland import insert_root_info, update_root_id, get_root_info
-
 from model import Metadata, ChildNodeInfo, CryptTreeNodeModel
 
 # 例: 環境変数 'TEST_ENV' が 'True' の場合にのみ実際の接続を行う
@@ -106,7 +105,6 @@ class CryptTreeNode(CryptTreeNodeModel):
         
     @classmethod
     def get_node(cls, cid: str, sk: bytes) -> 'CryptTreeNode':
-        client = ipfshttpclient.connect()
         enc_metadata = client.cat(cid)
         metadata = json.loads(Fernet(sk).decrypt(enc_metadata).decode())
         return CryptTreeNode(metadata=metadata, subfolder_key=sk)

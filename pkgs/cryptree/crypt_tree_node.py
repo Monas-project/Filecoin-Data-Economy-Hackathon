@@ -61,6 +61,7 @@ class CryptTreeNode(CryptTreeNodeModel):
             parent.metadata.child_info.append(child_info)
             parent_enc_metadata = parent.encrypt_metadata()
             parent_new_cid = client.add_bytes(parent_enc_metadata)
+            # 親ノードおよびルートノードまでの先祖ノード全てのメタデータを更新
             CryptTreeNode.update_all_nodes(parent.metadata.owner_id, parent_new_cid, parent.subfolder_key)
 
         # インスタンスの作成と返却
@@ -73,13 +74,16 @@ class CryptTreeNode(CryptTreeNodeModel):
         return Fernet(self.subfolder_key).encrypt(self.metadata.model_dump_json().encode())
 
     @classmethod
-    def update_all_nodes(cls, address: str, new_cid: str, target_subfolder_key: bytes):
+    def update_all_nodes(cls, address: str, new_cid: str, target_subfolder_key: str):
+        # ルートノードのから下の階層に降りながら、該当のサブフォルダキーを持つノードを探し、新しいCIDに更新する
         root_id, root_key = Tableland.get_root_info(address)
         root_node = cls.get_node(root_id, root_key)
 
+        # ルートIDの更新
         def update_root_callback(address, new_root_id):
             Tableland.update_root_id(address, new_root_id)
-            
+
+        # ルートIDとターゲットのサブフォルダキーが一致する場合、ルートノードのCIDを更新
         if root_node.subfolder_key == target_subfolder_key:
             update_root_callback(address, new_cid)
         else:
@@ -90,13 +94,16 @@ class CryptTreeNode(CryptTreeNodeModel):
         child_info = node.metadata.child_info
         for index, child in enumerate(child_info):
             child_subfolder_key = child.sk.decode()
+            # サブフォルダキーが一致する場合、CIDを更新
             if child_subfolder_key == target_subfolder_key:
                 node.metadata.child_info[index].cid = new_cid
                 enc_metadata = node.encrypt_metadata()
                 new_cid = client.add_bytes(enc_metadata)
+                # ここがupdate_root_id or update_all_nodesになる
                 callback(address, new_cid)
                 break
             else:
+                # サブフォルダキーが一致しない場合、さらに子ノードを探索
                 child_node = cls.get_node(child.cid, child.sk)
                 if len(child_node.metadata.child_info) > 0:
                     def update_all_again_callback(address, new_cid):

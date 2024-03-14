@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from web3 import Web3
 from eth_account.messages import encode_defunct
-from tableland import get_root_info
+from tableland import Tableland
 from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest
 import os
 from dotenv import load_dotenv
@@ -40,7 +40,7 @@ def get_current_user(token: str = Depends(oauth2_scheme)):
     except JWTError:
         raise credentials_exception
     
-    root_id, root_key = get_root_info(address)
+    root_id, root_key = Tableland.get_root_info(address)
     return {"address": address, "root_id": root_id, "root_key": root_key}
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
@@ -91,7 +91,7 @@ async def login(signature: str = Body(...), address: str = Body(...)):
         access_token = create_access_token(
             data={"sub": address}, expires_delta=access_token_expires
         )
-        root_id, root_key = get_root_info(address)
+        root_id, root_key = Tableland.get_root_info(address)
         node = CryptTreeNode.get_node(root_id, root_key)
         return {"current_node": node, "access_token": access_token, "token_type": "bearer"}
     else:

@@ -9,9 +9,7 @@ from tableland import get_root_info
 from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest
 import os
 from dotenv import load_dotenv
-import ipfshttpclient
-from cryptography.fernet import Fernet
-import json
+
 
 # .envファイルの内容を読み込見込む
 load_dotenv()
@@ -114,6 +112,7 @@ async def create(request: CreateNodeRequest, current_user: dict = Depends(get_cu
     try:
         print("create_node")
         new_node = CryptTreeNode.create_node(name=request.name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data)
+
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {

@@ -32,25 +32,31 @@
 - frontend build
 
   ```bash
-  yarn frontend:build
+  yarn frontend build
   ```
 
 - frontend dev
 
   ```bash
-  yarn frontend:dev
+  yarn frontend dev
   ```
 
 - smartcontract build
 
   ```bash
-  yarn backend:build
+  yarn backend compile
+  ```
+
+- smartcontract test
+
+  ```bash
+  yarn backend test
   ```
 
 - smartcontract deploy
 
   ```bash
-  yarn backend:deploy:filecoinCalibration
+  yarn backend deploy:filecoinCalibration
   ```
 
 ### Reference

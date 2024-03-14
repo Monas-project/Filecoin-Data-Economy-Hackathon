@@ -21,7 +21,7 @@ class CryptTreeNode(CryptTreeNodeModel):
 
     # ノードを作成する
     @classmethod
-    def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CryptTreeNode'] = None, file_data: Optional[bytes] = None) -> 'CryptTreeNode':
+    def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CrypTreeNode'] = None, file_data: Optional[bytes] = None) -> 'CrypTreeNode':
         # キー生成
         subfolder_key = Fernet.generate_key()
         file_key = Fernet.generate_key() if not isDirectory else None
@@ -108,4 +108,29 @@ class CryptTreeNode(CryptTreeNodeModel):
         enc_metadata = client.cat(cid)
         metadata = json.loads(Fernet(sk).decrypt(enc_metadata).decode())
         return CryptTreeNode(metadata=metadata, subfolder_key=sk)
+
+    """
+    再暗号化(アクセス拒否したときに行う処理)関数
+        機能追加
+            鍵生成の機能を新しく追加しないといけない
+
+        役割
+            Data_key(DK): 階層のフォルダ(メタデータ)の暗号化する
+            Subbolder_key(SK): 親フォルダとData_keyを暗号化する
+                Data_keyを無視して, 親フォルダと対象フォルダの暗号化
+            File_key(FK): FileObjectを暗号化する
+            ルートノードは必ずフォルダ
+
+        アルゴリズム:
+            1. 特定のパスに行く
+                これは引数でファイルまたはフォルダを渡す
+            2. 特定のパスから最下層のノードに向かって復号化を行っていく
+                リーフノードにむかうまで再帰的に行う
+                再帰性はSomaさんのアルゴリズムを参考にする
+            3. 最下層ノードに行ったら新しい鍵で暗号化して暗号化されたファイルをIPFSへ保存する
+            4. Folderの場合はSub-folder Keyを生成し暗号化
+            4'. Fileの場合はFile Keyを生成し、暗号化
+            5. 特定ノードへ戻ったら、メタデータの更新とIPFSへ保存をルートノードまで繰り返す
+                ※特定ノードからは新しい鍵の生成は必要なし
+    """
 

@@ -10,3 +10,5 @@ bytecode.bin
 # Hardhat files
 cache
 artifacts
+
+tmp

@@ -65,6 +65,43 @@
   cd pkgs/backend && npx hardhat getBalance --account 0x51908F598A5e0d8F1A3bAbFa6DF76F9704daD072 --network filecoinCalibration
   ```
 
+- task getAllTableData
+
+  ```bash
+  cd pkgs/backend && npx hardhat getAllTableData --tablename fileinfo_table_314159_727
+  results: []
+  ```
+
+- task insertData
+
+  ```bash
+  cd pkgs/backend && npx hardhat insertData --filehash "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b953" --filecid "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b953" --network filecoinCalibration
+  ```
+
+- task setRootHash
+
+  ```bash
+  cd pkgs/backend && npx hardhat setRootHash --roothash "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b953" --network filecoinCalibration
+  ```
+
+- task getRootHash
+
+  ```bash
+  cd pkgs/backend && npx hardhat getRootHash --network filecoinCalibration
+  ```
+
+- task delete data
+
+  ```bash
+  cd pkgs/backend && npx hardhat deleteData --id 4 --network filecoinCalibration
+  ```
+
+- task update data
+
+  ```bash
+  cd pkgs/backend && npx hardhat updateData --id 3 --filehash "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b977" --filecid "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b988" --network filecoinCalibration
+  ```
+
 ### Reference
 
 1. [FEVM Quickstart](https://docs.filecoin.io/smart-contracts/developing-contracts/hardhat)

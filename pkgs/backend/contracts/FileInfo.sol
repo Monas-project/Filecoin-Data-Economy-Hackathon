@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.10 <0.9.0;
 
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
@@ -26,13 +26,13 @@ contract FileInfo is TablelandController, ERC721Holder {
     uint256 tableId,
     string tableName,
     string fileHash,
-    string locationId
+    string fileCid
   );
   event Update(
     uint256 tableId,
     string tableName,
     string fileHash,
-    string locationId
+    string fileCid
   );
   event Delete(uint256 tableId, string tableName);
   event UpdateRootHash(bytes32 rootHash);
@@ -47,7 +47,7 @@ contract FileInfo is TablelandController, ERC721Holder {
       SQLHelpers.toCreateFromSchema(
         "id integer primary key,"
         "fileHash text,"
-        "locationId text",
+        "fileCid text",
         _TABLE_PREFIX
       )
     );
@@ -61,7 +61,7 @@ contract FileInfo is TablelandController, ERC721Holder {
    */
   function insertFileInfo(
     string memory _fileHash,
-    string memory _locationId
+    string memory _fileCid
   ) external {
     TablelandDeployments.get().mutate(
       address(this),
@@ -69,15 +69,15 @@ contract FileInfo is TablelandController, ERC721Holder {
       SQLHelpers.toInsert(
         _TABLE_PREFIX,
         tableId,
-        "fileHash, locationId",
+        "fileHash, fileCid",
         string.concat(
           SQLHelpers.quote(_fileHash),
           ",",
-          SQLHelpers.quote(_locationId)
+          SQLHelpers.quote(_fileCid)
         )
       )
     );
-    emit Insert(tableId, tableName, _fileHash, _locationId);
+    emit Insert(tableId, tableName, _fileHash, _fileCid);
   }
 
   /**
@@ -86,14 +86,14 @@ contract FileInfo is TablelandController, ERC721Holder {
   function updateFileInfo(
     uint64 id,
     string memory _fileHash,
-    string memory _locationId
+    string memory _fileCid
   ) external {
     string memory setters = string.concat(
       "fileHash=",
       SQLHelpers.quote(_fileHash),
       ",",
-      "locationId=",
-      SQLHelpers.quote(_locationId)
+      "fileCid=",
+      SQLHelpers.quote(_fileCid)
     );
     string memory filters = string.concat("id=", Strings.toString(id));
     // Mutate a row at `id` with a new `val`
@@ -102,7 +102,7 @@ contract FileInfo is TablelandController, ERC721Holder {
       tableId,
       SQLHelpers.toUpdate(_TABLE_PREFIX, tableId, setters, filters)
     );
-    emit Update(tableId, tableName, _fileHash, _locationId);
+    emit Update(tableId, tableName, _fileHash, _fileCid);
   }
 
   /**
@@ -130,7 +130,7 @@ contract FileInfo is TablelandController, ERC721Holder {
     // Restrict updates to a single column, e.g., `val`
     string[] memory updatableColumns = new string[](2);
     updatableColumns[0] = "fileHash";
-    updatableColumns[1] = "locationId";
+    updatableColumns[1] = "fileCid";
     // Return the policy
     return
       TablelandPolicy({
@@ -149,6 +149,17 @@ contract FileInfo is TablelandController, ERC721Holder {
   function setRootHash(bytes32 _rootHash) external {
     rootHash = _rootHash;
     emit UpdateRootHash(_rootHash);
+  }
+
+  /**
+   * set ACL function
+   */
+  function setAccessControl() public {
+    TablelandDeployments.get().setController(
+      address(this),
+      tableId,
+      address(this)
+    );
   }
 
   /**

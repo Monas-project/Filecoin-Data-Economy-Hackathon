@@ -51,6 +51,8 @@ describe("FileInfo contract", function () {
     const FileInfoFactory = await ethers.getContractFactory("FileInfo");
     fileInfo = (await FileInfoFactory.deploy()) as FileInfo;
     await fileInfo.deployed();
+    // setController
+    await fileInfo.setAccessControl();
   });
 
   it("should deploy, create a table, and set the controller", async function () {
@@ -75,7 +77,7 @@ describe("FileInfo contract", function () {
     expect(policy.allowDelete).to.equal(true);
     expect(policy.whereClause).to.equal("");
     expect(policy.withCheck).to.equal("");
-    expect(policy.updatableColumns).to.deep.equal([]);
+    expect(policy.updatableColumns).to.deep.equal(["fileHash", "fileCid"]);
   });
 
   it("should return the table name", async function () {

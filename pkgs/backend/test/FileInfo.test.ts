@@ -118,4 +118,11 @@ describe("FileInfo contract", function () {
     const rootHash = await fileInfo.getRootHash();
     expect(rootHash).to.equal(sampleHash);
   });
+
+  it("【ERROR】owner can only call setController method", async function () {
+    // error must occur
+    await expect(
+      fileInfo.connect(accounts[1]).setAccessControl()
+    ).to.revertedWith("msg.sender must be owner");
+  });
 });

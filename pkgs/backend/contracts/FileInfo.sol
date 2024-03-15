@@ -18,10 +18,11 @@ contract FileInfo is TablelandController, ERC721Holder {
   string private tableName;
   string private constant _TABLE_PREFIX = "fileinfo_table";
   bytes32 private rootHash;
+  address owner;
 
   /// events
 
-  event TableCreated(uint256 tableId, string tableName);
+  event TableCreated(uint256 tableId, string tableName, address owner);
   event Insert(
     uint256 tableId,
     string tableName,
@@ -36,6 +37,11 @@ contract FileInfo is TablelandController, ERC721Holder {
   );
   event Delete(uint256 tableId, string tableName);
   event UpdateRootHash(bytes32 rootHash);
+
+  modifier onlyOwner() {
+    require(msg.sender == owner, "msg.sender must be owner");
+    _;
+  }
 
   /**
    * constructor
@@ -52,8 +58,10 @@ contract FileInfo is TablelandController, ERC721Holder {
       )
     );
     tableName = SQLHelpers.toNameFromId(_TABLE_PREFIX, tableId);
+    // set owner
+    owner = msg.sender;
     // emit
-    emit TableCreated(tableId, tableName);
+    emit TableCreated(tableId, tableName, msg.sender);
   }
 
   /**
@@ -154,7 +162,7 @@ contract FileInfo is TablelandController, ERC721Holder {
   /**
    * set ACL function
    */
-  function setAccessControl() public {
+  function setAccessControl() public onlyOwner {
     TablelandDeployments.get().setController(
       address(this),
       tableId,

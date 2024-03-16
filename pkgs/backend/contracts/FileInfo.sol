@@ -26,13 +26,13 @@ contract FileInfo is TablelandController, ERC721Holder {
   event Insert(
     uint256 tableId,
     string tableName,
-    string fileHash,
+    string rootId,
     string fileCid
   );
   event Update(
     uint256 tableId,
     string tableName,
-    string fileHash,
+    string rootId,
     string fileCid
   );
   event Delete(uint256 tableId, string tableName);
@@ -52,7 +52,7 @@ contract FileInfo is TablelandController, ERC721Holder {
       address(this),
       SQLHelpers.toCreateFromSchema(
         "id integer primary key,"
-        "fileHash text,"
+        "rootId text,"
         "fileCid text",
         _TABLE_PREFIX
       )
@@ -68,7 +68,7 @@ contract FileInfo is TablelandController, ERC721Holder {
    * Insert a row into the table from an external call
    */
   function insertFileInfo(
-    string memory _fileHash,
+    string memory _rootId,
     string memory _fileCid
   ) external {
     TablelandDeployments.get().mutate(
@@ -77,15 +77,15 @@ contract FileInfo is TablelandController, ERC721Holder {
       SQLHelpers.toInsert(
         _TABLE_PREFIX,
         tableId,
-        "fileHash, fileCid",
+        "rootId, fileCid",
         string.concat(
-          SQLHelpers.quote(_fileHash),
+          SQLHelpers.quote(_rootId),
           ",",
           SQLHelpers.quote(_fileCid)
         )
       )
     );
-    emit Insert(tableId, tableName, _fileHash, _fileCid);
+    emit Insert(tableId, tableName, _rootId, _fileCid);
   }
 
   /**
@@ -93,12 +93,12 @@ contract FileInfo is TablelandController, ERC721Holder {
    */
   function updateFileInfo(
     uint64 id,
-    string memory _fileHash,
+    string memory _rootId,
     string memory _fileCid
   ) external {
     string memory setters = string.concat(
-      "fileHash=",
-      SQLHelpers.quote(_fileHash),
+      "rootId=",
+      SQLHelpers.quote(_rootId),
       ",",
       "fileCid=",
       SQLHelpers.quote(_fileCid)
@@ -110,7 +110,7 @@ contract FileInfo is TablelandController, ERC721Holder {
       tableId,
       SQLHelpers.toUpdate(_TABLE_PREFIX, tableId, setters, filters)
     );
-    emit Update(tableId, tableName, _fileHash, _fileCid);
+    emit Update(tableId, tableName, _rootId, _fileCid);
   }
 
   /**
@@ -137,7 +137,7 @@ contract FileInfo is TablelandController, ERC721Holder {
   ) public payable override returns (TablelandPolicy memory) {
     // Restrict updates to a single column, e.g., `val`
     string[] memory updatableColumns = new string[](2);
-    updatableColumns[0] = "fileHash";
+    updatableColumns[0] = "rootId";
     updatableColumns[1] = "fileCid";
     // Return the policy
     return

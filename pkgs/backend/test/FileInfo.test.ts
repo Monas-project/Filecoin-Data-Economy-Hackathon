@@ -77,7 +77,7 @@ describe("FileInfo contract", function () {
     expect(policy.allowDelete).to.equal(true);
     expect(policy.whereClause).to.equal("");
     expect(policy.withCheck).to.equal("");
-    expect(policy.updatableColumns).to.deep.equal(["fileHash", "fileCid"]);
+    expect(policy.updatableColumns).to.deep.equal(["rootId", "fileCid"]);
   });
 
   it("should return the table name", async function () {

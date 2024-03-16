@@ -68,14 +68,14 @@
 - task getAllTableData
 
   ```bash
-  cd pkgs/backend && npx hardhat getAllTableData --tablename fileinfo_table_314159_727
+  cd pkgs/backend && npx hardhat getAllTableData --tablename fileinfo_table_314159_728
   results: []
   ```
 
 - task insertData
 
   ```bash
-  cd pkgs/backend && npx hardhat insertData --filehash "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b953" --filecid "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b953" --network filecoinCalibration
+  cd pkgs/backend && npx hardhat insertData --rootid "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b953" --filecid "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b953" --network filecoinCalibration
   ```
 
 - task setRootHash
@@ -99,7 +99,7 @@
 - task update data
 
   ```bash
-  cd pkgs/backend && npx hardhat updateData --id 3 --filehash "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b977" --filecid "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b988" --network filecoinCalibration
+  cd pkgs/backend && npx hardhat updateData --id 3 --rootid "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b977" --filecid "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b988" --network filecoinCalibration
   ```
 
 ### Reference
@@ -111,3 +111,4 @@
 5. [TableLand - Deployed contracts](https://docs.tableland.xyz/smart-contracts/deployed-contracts)
 6. [Filfox Contract Verification API Documents](https://filfox.notion.site/Filfox-Contract-Verification-API-Documents-c48d361c949348acb0bf806871ddd2c2)
 7. [TableLand Studio](https://studio.tableland.xyz/mashharuki/monas)
+8. [wagmi V1 signMessage](https://1.x.wagmi.sh/examples/sign-message)

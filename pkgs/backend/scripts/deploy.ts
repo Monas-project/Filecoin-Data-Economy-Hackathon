@@ -1,22 +1,36 @@
-import { ethers } from 'hardhat';
+import "@nomiclabs/hardhat-ethers";
+import { ethers, network } from "hardhat";
+import {
+  resetContractAddressesJson,
+  writeContractAddress,
+} from "../helper/contractsJsonHelper";
 
-/**
- * deploy MockVerifier contract script
- */
 async function main() {
-  console.log(` ============================================== [start] ================================================ `)
+  // set Contract Address json
+  resetContractAddressesJson({ network: network.name });
 
-  // SimpleCoin deploy
-  const SimpleCoin = await ethers.getContractFactory("SimpleCoin");
-  const coin = await SimpleCoin.deploy(200);
-  console.log(` SimpleCoin deployed to ${coin.target}`);
+  const FileInfo = await ethers.getContractFactory("FileInfo");
+  const fileInfo = await FileInfo.deploy();
 
-  console.log(` =============================================== [end]  =============================================== `)
+  await fileInfo.deployed();
+  console.log(`Contract deployed to '${fileInfo.address}'.\n`);
+
+  const tableName = await fileInfo.getTableName();
+  console.log(`Table name '${tableName}' minted to contract.`);
+
+  const tableId = await fileInfo.getTableId();
+  console.log(`Table ID '${tableId}' minted to contract.`);
+
+  // write Contract Address
+  writeContractAddress({
+    group: "contracts",
+    name: "FileInfo",
+    value: fileInfo.address,
+    network: network.name,
+  });
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
 main().catch((error) => {
-  console.error(error)
-  process.exitCode = 1
-})
+  console.error(error);
+  process.exitCode = 1;
+});

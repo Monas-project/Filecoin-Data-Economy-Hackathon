@@ -6,7 +6,7 @@ class ChildNodeInfo(BaseModel):
     cid: str
     sk: bytes
 
-class CryptTreeNodeModel(BaseModel):
+class CryptreeNodeModel(BaseModel):
     metadata: Dict
     subfolder_key: bytes
 

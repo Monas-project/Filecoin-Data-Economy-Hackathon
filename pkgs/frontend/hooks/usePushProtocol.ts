@@ -1,3 +1,4 @@
+import { getEnv } from "@/utils/getEnv";
 import { PushAPI } from "@pushprotocol/restapi";
 import { ENV } from "@pushprotocol/restapi/src/lib/constants";
 import { Signer, ethers } from "ethers";
@@ -10,13 +11,11 @@ const CANNEL_ADDRESS =
  * createSigner for PushProtocol
  */
 const createSignerForPushProtocol = async () => {
+  // get env
+  const env = await getEnv();
   // create signer & provider object
-  const signer = new ethers.Wallet(
-    process.env.NEXT_PUBLIC_PUSH_PROTOCOL_PRIVATE_KEY!
-  );
-  const provider = new ethers.JsonRpcProvider(
-    process.env.NEXT_PUBLIC_SEPOLIA_RPC_URL!
-  );
+  const signer = new ethers.Wallet(env.PUSH_PROTOCOL_PRIVATE_KEY);
+  const provider = new ethers.JsonRpcProvider(env.SEPOLIA_RPC_URL);
   // connect
   await signer.connect(provider);
   return signer;

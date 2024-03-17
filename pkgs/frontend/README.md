@@ -42,20 +42,25 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 `index.ts`
 
 ```ts
+import { useEthersSigner } from "@/hooks/useEthersProvider";
 import { getPushInfo, sendNotification } from "@/hooks/usePushProtocol";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useEffect } from "react";
+import { filecoinCalibration } from "viem/chains";
 import { useAccount } from "wagmi";
 
 export default function Login() {
   const account = useAccount();
+  const signer = useEthersSigner({ chainId: filecoinCalibration.id });
 
   useEffect(() => {
     const init = async () => {
-      await getPushInfo();
+      if (signer != undefined) {
+        await getPushInfo(signer);
+      }
     };
     init();
-  }, []);
+  }, [account]);
 
   const sendNotificate = async () => {
     await sendNotification();

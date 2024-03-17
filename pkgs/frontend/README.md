@@ -36,3 +36,36 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+## Sample for PushProtcol
+
+`index.ts`
+
+```ts
+import { getPushInfo, sendNotification } from "@/hooks/usePushProtocol";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useEffect } from "react";
+import { useAccount } from "wagmi";
+
+export default function Login() {
+  const account = useAccount();
+
+  useEffect(() => {
+    const init = async () => {
+      await getPushInfo();
+    };
+    init();
+  }, []);
+
+  const sendNotificate = async () => {
+    await sendNotification();
+  };
+
+  return (
+    <div className="w-screen h-screen flex flex-row">
+      <ConnectButton />
+      <button onClick={sendNotificate}>Send Sample Notification</button>
+    </div>
+  );
+}
+```

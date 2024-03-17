@@ -1,4 +1,5 @@
 import { getEnv } from "@/utils/getEnv";
+import { ListInfo } from "@/utils/type";
 import { PushAPI } from "@pushprotocol/restapi";
 import { ENV } from "@pushprotocol/restapi/src/lib/constants";
 import { Signer, ethers } from "ethers";
@@ -38,18 +39,21 @@ export const getPushInfo = async (signer: any) => {
   // init PushSDK
   const pushUser = await initPushSDK(signer);
   // get profile Info
-  const response = await pushUser.profile.info();
-  // get notification info
-  const listInfo = await pushUser.notification.list("INBOX");
+  // const response = await pushUser.profile.info();
   // get subscriptions
-  const subscriptions = await pushUser.notification.subscriptions();
+  // const subscriptions = await pushUser.notification.subscriptions();
   // get channel info
-  const channelInfo = await pushUser.channel.info(CANNEL_ADDRESS);
+  // const channelInfo = await pushUser.channel.info(CANNEL_ADDRESS);
+  // console.log("response:", response);
 
-  console.log("response:", response);
+  // console.log("subscriptions:", subscriptions);
+  // console.log("channelInfo:", channelInfo);
+
+  // get notification info
+  const listInfo: ListInfo[] = await pushUser.notification.list("INBOX");
   console.log("listInfo:", listInfo);
-  console.log("subscriptions:", subscriptions);
-  console.log("channelInfo:", channelInfo);
+
+  return listInfo;
 };
 
 /**

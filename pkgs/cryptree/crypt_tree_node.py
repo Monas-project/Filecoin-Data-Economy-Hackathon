@@ -2,7 +2,7 @@ from pydantic import Field
 from typing import Optional
 import os
 import json
-import datetime
+from datetime import datetime
 from cryptography.fernet import Fernet
 from fake_ipfs import FakeIPFS
 import ipfshttpclient
@@ -34,7 +34,7 @@ class CryptTreeNode(CryptTreeNodeModel):
         metadata = Metadata(
             name=name,
             owner_id=owner_id,
-            creation_date=datetime.datetime.now(),
+            created_at=datetime.now(),
             file_cid=None,
             child_info=[]
         )

@@ -1,6 +1,7 @@
 import datetime
 from typing import Optional, Dict, List
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+from datetime import datetime
 
 class ChildNodeInfo(BaseModel):
     cid: str
@@ -13,7 +14,7 @@ class CryptreeNodeModel(BaseModel):
 class Metadata(BaseModel):
     name: str
     owner_id: str
-    creation_date: datetime.datetime
+    created_at: datetime = Field(default_factory=datetime.now)
     # parent_info: Optional[str] = None
     child_info: List[ChildNodeInfo] = []
     file_cid: Optional[str] = None  # ファイルCIDはファイルノードでのみ設定されます

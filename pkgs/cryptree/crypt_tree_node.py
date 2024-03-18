@@ -6,7 +6,7 @@ from datetime import datetime
 from cryptography.fernet import Fernet
 from fake_ipfs import FakeIPFS
 import ipfshttpclient
-from model import Metadata, ChildNodeInfo, CryptTreeNodeModel
+from model import Metadata, ChildNodeInfo, CryptreeNodeModel
 from tableland import Tableland
 
 # 例: 環境変数 'TEST_ENV' が 'True' の場合にのみ実際の接続を行う
@@ -15,13 +15,13 @@ if os.environ.get('TEST_ENV') != 'True':
 else:
     client = FakeIPFS()  # テスト用の偽のIPFSクライアント
 
-class CryptTreeNode(CryptTreeNodeModel):
+class CryptreeNode(CryptreeNodeModel):
     metadata: Metadata = Field(..., alias="metadata")
     subfolder_key: str = Field(..., alias="subfolder_key")
 
     # ノードを作成する
     @classmethod
-    def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CryptTreeNode'] = None, file_data: Optional[bytes] = None) -> 'CryptTreeNode':
+    def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CryptreeNode'] = None, file_data: Optional[bytes] = None) -> 'CryptreeNode':
         # キー生成
         subfolder_key = Fernet.generate_key()
         file_key = Fernet.generate_key() if not isDirectory else None
@@ -61,8 +61,13 @@ class CryptTreeNode(CryptTreeNodeModel):
             parent.metadata.child_info.append(child_info)
             parent_enc_metadata = parent.encrypt_metadata()
             parent_new_cid = client.add_bytes(parent_enc_metadata)
+            root_id, _ = Tableland.get_root_info(owner_id)
             # 親ノードおよびルートノードまでの先祖ノード全てのメタデータを更新
-            CryptTreeNode.update_all_nodes(parent.metadata.owner_id, parent_new_cid, parent.subfolder_key)
+            CryptreeNode.update_all_nodes(parent.metadata.owner_id, parent_new_cid, parent.subfolder_key)
+            new_root_id = root_id
+            # ルートIDが変更されるまでループ
+            while root_id == new_root_id:
+                new_root_id, _ = Tableland.get_root_info(owner_id)
 
         # インスタンスの作成と返却
         return cls(
@@ -90,7 +95,7 @@ class CryptTreeNode(CryptTreeNodeModel):
             cls.update_node(root_node, address, target_subfolder_key, new_cid, update_root_callback)
 
     @classmethod
-    def update_node(cls, node: 'CryptTreeNode', address: str, target_subfolder_key: str, new_cid: str, callback):
+    def update_node(cls, node: 'CryptreeNode', address: str, target_subfolder_key: str, new_cid: str, callback):
         child_info = node.metadata.child_info
         for index, child in enumerate(child_info):
             child_subfolder_key = child.sk.decode()
@@ -111,10 +116,10 @@ class CryptTreeNode(CryptTreeNodeModel):
                     cls.update_node(child_node, address, target_subfolder_key, new_cid, update_all_again_callback)
         
     @classmethod
-    def get_node(cls, cid: str, sk: bytes) -> 'CryptTreeNode':
+    def get_node(cls, cid: str, sk: bytes) -> 'CryptreeNode':
         enc_metadata = client.cat(cid)
         metadata = json.loads(Fernet(sk).decrypt(enc_metadata).decode())
-        return CryptTreeNode(metadata=metadata, subfolder_key=sk)
+        return CryptreeNode(metadata=metadata, subfolder_key=sk)
 
     """
     再暗号化(アクセス拒否したときに行う処理)関数

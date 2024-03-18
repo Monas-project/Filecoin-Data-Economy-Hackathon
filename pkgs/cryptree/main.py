@@ -1,6 +1,6 @@
-from fastapi import Depends, APIRouter, FastAPI, HTTPException, status, Body
+from fastapi import Depends, APIRouter, FastAPI, HTTPException, status, Body, Form
 from fastapi.security import OAuth2PasswordBearer
-from crypt_tree_node import CryptTreeNode
+from crypt_tree_node import CryptreeNode
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from web3 import Web3
@@ -69,14 +69,18 @@ async def signup(request: GenerateRootNodeRequest):
         )
 
         try:
-            new_node = CryptTreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=request.isDirectory)
+            new_node = CryptreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=False)
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
         
-        return {"root_node": {
-            "metadata": new_node.metadata,
-            "subfolder_key": new_node.subfolder_key
-        }, "access_token": access_token, "token_type": "bearer"}
+        return {
+            "root_node": {
+                "metadata": new_node.metadata,
+                "subfolder_key": new_node.subfolder_key
+            },
+            "access_token": access_token,
+            "token_type": "bearer"
+        }
     else:
         raise HTTPException(status_code=401, detail="Invalid signature or address")
 
@@ -92,8 +96,16 @@ async def login(signature: str = Body(...), address: str = Body(...)):
             data={"sub": address}, expires_delta=access_token_expires
         )
         root_id, root_key = Tableland.get_root_info(address)
-        node = CryptTreeNode.get_node(root_id, root_key)
-        return {"current_node": node, "access_token": access_token, "token_type": "bearer"}
+
+        node = CryptreeNode.get_node(root_id, root_key)
+        return {
+            "root_node": {
+                "metadata": node.metadata,
+                "subfolder_key": node.subfolder_key
+            },
+            "access_token": access_token,
+            "token_type": "bearer",
+        }
     else:
         raise HTTPException(status_code=401, detail="Invalid signature or address")
 
@@ -102,23 +114,31 @@ async def login(signature: str = Body(...), address: str = Body(...)):
 async def create(request: CreateNodeRequest, current_user: dict = Depends(get_current_user)):
     parent_cid = request.parent_cid
     parent_subfolder_key = request.subfolder_key.encode()
-    current_node = CryptTreeNode.get_node(parent_cid, parent_subfolder_key)
+    current_node = CryptreeNode.get_node(parent_cid, parent_subfolder_key)
     file_data = request.file_data.encode() if request.file_data else None
     try:
-        new_node = CryptTreeNode.create_node(name=request.name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data)
-
+        new_node = CryptreeNode.create_node(name=request.name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data)
+        root_id, _ = Tableland.get_root_info(current_user["address"]);
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
     return {
         "metadata": new_node.metadata,
-        "subfolder_key": new_node.subfolder_key
+        "subfolder_key": new_node.subfolder_key,
+        "root_id": root_id,
     }
 
 @router.post("/fetch")
 async def fetch(request: FetchNodeRequest, current_user: dict = Depends(get_current_user)):
     subfolder_key = request.subfolder_key
     cid = request.cid
-    return CryptTreeNode.get_node(cid, subfolder_key)
+    address = request.owner_id
+    node = CryptreeNode.get_node(cid, subfolder_key);
+    root_id, _ = Tableland.get_root_info(address);
+    return {
+        "metadata": node.metadata,
+        "subfolder_key": node.subfolder_key,
+        "root_id": root_id,
+    }
 
 
 app.include_router(router, prefix="/api")

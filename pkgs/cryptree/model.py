@@ -7,7 +7,7 @@ class ChildNodeInfo(BaseModel):
     cid: str
     sk: bytes
 
-class CryptTreeNodeModel(BaseModel):
+class CryptreeNodeModel(BaseModel):
     metadata: Dict
     subfolder_key: bytes
 
@@ -23,7 +23,6 @@ class Metadata(BaseModel):
 class GenerateRootNodeRequest(BaseModel):
     name: str
     owner_id: str
-    isDirectory: bool
     signature: str
 
 class CreateNodeRequest(BaseModel):
@@ -37,3 +36,4 @@ class CreateNodeRequest(BaseModel):
 class FetchNodeRequest(BaseModel):
     cid: str
     subfolder_key: str
+    owner_id: str # このCIDのノードの所有者のアドレス

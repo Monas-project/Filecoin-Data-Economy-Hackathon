@@ -1,6 +1,6 @@
 import datetime
-from typing import Optional, Dict, List, Field
-from pydantic import BaseModel
+from typing import Optional, Dict, List
+from pydantic import BaseModel, Field
 from datetime import datetime
 
 class ChildNodeInfo(BaseModel):

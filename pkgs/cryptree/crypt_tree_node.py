@@ -61,8 +61,13 @@ class CryptreeNode(CryptreeNodeModel):
             parent.metadata.child_info.append(child_info)
             parent_enc_metadata = parent.encrypt_metadata()
             parent_new_cid = client.add_bytes(parent_enc_metadata)
+            root_id, _ = Tableland.get_root_info(owner_id)
             # 親ノードおよびルートノードまでの先祖ノード全てのメタデータを更新
             CryptreeNode.update_all_nodes(parent.metadata.owner_id, parent_new_cid, parent.subfolder_key)
+            new_root_id = root_id
+            # ルートIDが変更されるまでループ
+            while root_id == new_root_id:
+                new_root_id, _ = Tableland.get_root_info(owner_id)
 
         # インスタンスの作成と返却
         return cls(

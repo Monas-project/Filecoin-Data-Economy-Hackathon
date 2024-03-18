@@ -22,7 +22,6 @@ class Metadata(BaseModel):
 class GenerateRootNodeRequest(BaseModel):
     name: str
     owner_id: str
-    isDirectory: bool
     signature: str
 
 class CreateNodeRequest(BaseModel):

@@ -69,7 +69,7 @@ async def signup(request: GenerateRootNodeRequest):
         )
 
         try:
-            new_node = CryptreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=request.isDirectory)
+            new_node = CryptreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=False)
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
         

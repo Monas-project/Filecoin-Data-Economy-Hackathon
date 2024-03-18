@@ -131,8 +131,9 @@ async def create(request: CreateNodeRequest, current_user: dict = Depends(get_cu
 async def fetch(request: FetchNodeRequest, current_user: dict = Depends(get_current_user)):
     subfolder_key = request.subfolder_key
     cid = request.cid
+    address = request.owner_id
     node = CryptreeNode.get_node(cid, subfolder_key);
-    root_id, _ = Tableland.get_root_info(current_user["address"]);
+    root_id, _ = Tableland.get_root_info(address);
     return {
         "metadata": node.metadata,
         "subfolder_key": node.subfolder_key,

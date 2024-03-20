@@ -14,6 +14,7 @@
     "pkgs/*"
   ],
   "dependencies": {
+    "@fluentui/react-icons": "^2.0.232",
     "@tableland/evm": "^5.0.0"
   }
 }

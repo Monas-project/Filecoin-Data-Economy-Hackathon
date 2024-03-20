@@ -1,10 +1,10 @@
-import { Html, Head, Main, NextScript } from 'next/document'
+import { Html, Head, Main, NextScript } from 'next/document';
 
 export default function Document() {
   return (
-    <Html lang="en" className='h-screen w-screen'>
+    <Html lang="en">
       <Head />
-      <body className='font-sans text-Primary10 bg-white'>
+      <body className='font-notoSansDisplay select-text'>
         <Main />
         <NextScript />
       </body>

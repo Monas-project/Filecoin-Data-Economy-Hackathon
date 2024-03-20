@@ -1,5 +1,9 @@
 import FileInfoContractJson from "@/contracts/artifacts/contracts/FileInfo.sol/FileInfo.json";
-import { TABLE_NAME } from "@/utils/constants";
+import {
+  FILEINFO_CONTRACT_ADDRESS,
+  RPC_URL,
+  TABLE_NAME,
+} from "@/utils/constants";
 import { Database } from "@tableland/sdk";
 import { Contract, ethers } from "ethers";
 
@@ -16,13 +20,17 @@ var contract: Contract;
 /**
  * crateContract Instance method
  */
-export const createContract = (address: string, rpcUrl: string) => {
+export const createContract = () => {
   // create provider
-  const provider = new ethers.JsonRpcProvider(rpcUrl);
+  const provider = new ethers.JsonRpcProvider(RPC_URL);
   // コントラクトのインスタンスを生成
-  contract = new ethers.Contract(address, FileInfoContractJson.abi, provider);
+  contract = new ethers.Contract(
+    FILEINFO_CONTRACT_ADDRESS,
+    FileInfoContractJson.abi,
+    provider
+  );
   // set contract address
-  contractAddress = address;
+  contractAddress = FILEINFO_CONTRACT_ADDRESS;
 };
 
 /**

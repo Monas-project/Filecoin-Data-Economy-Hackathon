@@ -12,6 +12,33 @@ import { filecoinCalibration } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 import "../styles/globals.css";
 import { ResponseData } from "./api/env";
+  filecoinCalibration
+} from 'wagmi/chains';
+
+const {
+  chains,
+  publicClient,
+  webSocketPublicClient
+} = configureChains(
+  [
+    filecoinCalibration,
+    ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [filecoinCalibration] : []),
+  ],
+  [publicProvider()]
+);
+
+const { connectors } = getDefaultWallets({
+  appName: 'Monas',
+  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID!,
+  chains,
+});
+
+const wagmiConfig = createConfig({
+  // autoConnect: true,
+  connectors,
+  publicClient,
+  webSocketPublicClient,
+});
 
 /**
  * MyApp Component
@@ -55,6 +82,7 @@ function MyApp({ Component, pageProps }: AppProps) {
     };
     init();
   }, []);
+
 
   return (
     <>

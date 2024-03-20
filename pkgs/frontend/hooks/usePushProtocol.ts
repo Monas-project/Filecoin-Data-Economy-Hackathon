@@ -4,10 +4,6 @@ import { PushAPI } from "@pushprotocol/restapi";
 import { ENV } from "@pushprotocol/restapi/src/lib/constants";
 import { Signer, ethers } from "ethers";
 
-// channel address
-const CANNEL_ADDRESS =
-  "eip155:11155111:0x69d3E7219CE2259654EcBBFf9597936BaDF5Be52";
-
 /**
  * createSigner for PushProtocol
  */
@@ -69,7 +65,14 @@ export const sendNotification = async () => {
     {
       notification: {
         title: "This is a test Notification",
-        body: "This is a test Notification!!!!!!",
+        body: `
+          This is a test Notification!!!!!!
+
+          CID: aaaaaa
+          Key: bbbbbb
+          FileInfo: cccccc
+          
+        `,
       },
     }
   );

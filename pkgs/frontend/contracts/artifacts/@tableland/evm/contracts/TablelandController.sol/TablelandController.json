@@ -1,0 +1,118 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "TablelandController",
+  "sourceName": "@tableland/evm/contracts/TablelandController.sol",
+  "abi": [
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        }
+      ],
+      "name": "getPolicy",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "allowInsert",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "allowUpdate",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "allowDelete",
+              "type": "bool"
+            },
+            {
+              "internalType": "string",
+              "name": "whereClause",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "withCheck",
+              "type": "string"
+            },
+            {
+              "internalType": "string[]",
+              "name": "updatableColumns",
+              "type": "string[]"
+            }
+          ],
+          "internalType": "struct TablelandPolicy",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "name": "getPolicy",
+      "outputs": [
+        {
+          "components": [
+            {
+              "internalType": "bool",
+              "name": "allowInsert",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "allowUpdate",
+              "type": "bool"
+            },
+            {
+              "internalType": "bool",
+              "name": "allowDelete",
+              "type": "bool"
+            },
+            {
+              "internalType": "string",
+              "name": "whereClause",
+              "type": "string"
+            },
+            {
+              "internalType": "string",
+              "name": "withCheck",
+              "type": "string"
+            },
+            {
+              "internalType": "string[]",
+              "name": "updatableColumns",
+              "type": "string[]"
+            }
+          ],
+          "internalType": "struct TablelandPolicy",
+          "name": "",
+          "type": "tuple"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "function"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

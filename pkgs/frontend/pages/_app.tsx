@@ -12,8 +12,6 @@ import { filecoinCalibration } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 import "../styles/globals.css";
 import { ResponseData } from "./api/env";
-  filecoinCalibration
-} from 'wagmi/chains';
 
 /**
  * MyApp Component
@@ -57,7 +55,6 @@ function MyApp({ Component, pageProps }: AppProps) {
     };
     init();
   }, []);
-
 
   return (
     <>

@@ -8,10 +8,10 @@ import {
 import { publicProvider } from 'wagmi/providers/public';
 import '../styles/globals.css';
 
-const { 
-  chains, 
-  publicClient, 
-  webSocketPublicClient 
+const {
+  chains,
+  publicClient,
+  webSocketPublicClient
 } = configureChains(
   [
     filecoinCalibration,
@@ -39,12 +39,13 @@ const wagmiConfig = createConfig({
  * @returns 
  */
 function MyApp({ Component, pageProps }: AppProps) {
+
   return (
     <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider 
-        chains={chains} 
-        coolMode={true} 
-        locale='en' 
+      <RainbowKitProvider
+        chains={chains}
+        coolMode={true}
+        locale='en'
         showRecentTransactions={true}
         theme={darkTheme({
           accentColor: 'rgb(54 44 73 / var(--tw-bg-opacity)',

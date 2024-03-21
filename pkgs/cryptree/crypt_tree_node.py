@@ -20,46 +20,44 @@ else:
 class CryptreeNode(CryptreeNodeModel):
     metadata: Metadata = Field(..., alias="metadata")
     subfolder_key: str = Field(..., alias="subfolder_key")
+    cid: str = Field(..., alias="cid")
 
     # ノードを作成する
     @classmethod
-    def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CryptreeNode'] = None, file_data: Optional[bytes] = None) -> 'CryptreeNode':
+    def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CryptreeNode'] = None, file_data: Optional[str] = None) -> 'CryptreeNode':
         # キー生成
         if parent is None:
             kms_client = Kms()
             subfolder_key = kms_client.create_key(description=f'{owner_id}_{name}', key_usage="ENCRYPT_DECRYPT", customer_master_spec="SYMMETRIC_DEFAULT")
         else:
-            subfolder_key = Fernet.generate_key()
-        file_key = Fernet.generate_key() if not isDirectory else None
+            subfolder_key = Fernet.generate_key().decode()
+        file_key = Fernet.generate_key().decode() if not isDirectory else None
 
         # メタデータの作成
         metadata = Metadata(
             name=name,
             owner_id=owner_id,
             created_at=datetime.now(),
-            file_cid=None,
-            child_info=[]
+            children=[]
         )
 
-        # ファイルの場合、ファイルデータを暗号化
         if not isDirectory:
-            enc_file_data = CryptreeNode.encrypt(file_key, file_data).decode()
-            file_cid = client.add_bytes(enc_file_data)
-            metadata.file_cid = file_cid
-            metadata.enc_file_key = CryptreeNode.encrypt(subfolder_key, file_key).decode()
+            # ファイルの場合、ファイルデータを暗号化
+            enc_file_data = CryptreeNode.encrypt(file_key, file_data)
+            cid = client.add_bytes(enc_file_data)
+            file_info = ChildNodeInfo(cid=cid, fk=file_key)
+            metadata.children.append(file_info)
 
         # メタデータを暗号化してIPFSにアップロード
         enc_metadata = CryptreeNode.encrypt(subfolder_key, metadata.model_dump_json().encode())
         cid = client.add_bytes(enc_metadata)
+
         # # ルートノードの新規作成かどうかを判定
         if parent is None:
             Tableland.insert_root_info(owner_id, cid, subfolder_key)
         else:
-            child_info: ChildNodeInfo = {
-                "cid": cid,
-                "sk": subfolder_key
-            }
-            parent.metadata.child_info.append(child_info)
+            child_info = ChildNodeInfo(cid=cid, sk=subfolder_key)
+            parent.metadata.children.append(child_info)
             parent_enc_metadata = parent.encrypt_metadata()
             parent_new_cid = client.add_bytes(parent_enc_metadata)
             root_id, _ = Tableland.get_root_info(owner_id)
@@ -73,7 +71,8 @@ class CryptreeNode(CryptreeNodeModel):
         # インスタンスの作成と返却
         return cls(
             metadata=metadata,
-            subfolder_key=subfolder_key
+            subfolder_key=subfolder_key,
+            cid=cid,
         )
     
     def encrypt_metadata(self) -> bytes:
@@ -97,12 +96,15 @@ class CryptreeNode(CryptreeNodeModel):
 
     @classmethod
     def update_node(cls, node: 'CryptreeNode', address: str, target_subfolder_key: str, new_cid: str, callback):
-        child_info = node.metadata.child_info
-        for index, child in enumerate(child_info):
-            child_subfolder_key = child.sk.decode()
+        children = node.metadata.children
+        for index, child in enumerate(children):
+            # fileだった場合はスキップ
+            if child.sk is None:
+                continue
+            child_subfolder_key = child.sk
             # サブフォルダキーが一致する場合、CIDを更新
             if child_subfolder_key == target_subfolder_key:
-                node.metadata.child_info[index].cid = new_cid
+                node.metadata.children[index].cid = new_cid
                 enc_metadata = node.encrypt_metadata()
                 new_cid = client.add_bytes(enc_metadata)
                 # ここがupdate_root_id or update_all_nodesになる
@@ -110,8 +112,8 @@ class CryptreeNode(CryptreeNodeModel):
                 break
             else:
                 # サブフォルダキーが一致しない場合、さらに子ノードを探索
-                child_node = cls.get_node(child.cid, child.sk)
-                if len(child_node.metadata.child_info) > 0:
+                child_node = cls.get_node(child.cid, child_subfolder_key)
+                if len(child_node.metadata.children) > 0:
                     def update_all_again_callback(address, new_cid):
                         cls.update_all_nodes(address, new_cid, node.subfolder_key)
                     cls.update_node(child_node, address, target_subfolder_key, new_cid, update_all_again_callback)
@@ -121,7 +123,7 @@ class CryptreeNode(CryptreeNodeModel):
         enc_metadata = client.cat(cid)
         metadata_str = CryptreeNode.decrypt(sk, enc_metadata).decode()
         metadata = json.loads(metadata_str)
-        return cls(metadata=metadata, subfolder_key=sk)
+        return cls(metadata=metadata, subfolder_key=sk, cid=cid)
 
     @staticmethod
     def encrypt(key: str, data: bytes) -> bytes:

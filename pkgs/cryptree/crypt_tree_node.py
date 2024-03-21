@@ -43,7 +43,6 @@ class CryptreeNode(CryptreeNodeModel):
 
         # ファイルの場合、ファイルデータを暗号化
         if not isDirectory:
-            print(f"file_key: {file_key}")
             enc_file_data = CryptreeNode.encrypt(file_key, file_data).decode()
             file_cid = client.add_bytes(enc_file_data)
             metadata.file_cid = file_cid
@@ -120,17 +119,13 @@ class CryptreeNode(CryptreeNodeModel):
     @classmethod
     def get_node(cls, cid: str, sk: str) -> 'CryptreeNode':
         enc_metadata = client.cat(cid)
-        print(f"enc_metadata: {enc_metadata}")
-        print(f"sk: {sk}")
         metadata_str = CryptreeNode.decrypt(sk, enc_metadata).decode()
         metadata = json.loads(metadata_str)
         return cls(metadata=metadata, subfolder_key=sk)
 
     @staticmethod
     def encrypt(key: str, data: bytes) -> bytes:
-        print(f"key: {key}")
         decoded_key = base64.urlsafe_b64decode(key)
-        print(f"decoded_key: {decoded_key}")
         # ルートキーはAWS KMSのKeyIDなので、32バイトのバイナリデータの場合はFernetで暗号化
         if len(decoded_key) == 32:
             return Fernet(key).encrypt(data)

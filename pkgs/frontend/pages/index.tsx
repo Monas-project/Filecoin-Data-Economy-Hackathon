@@ -4,16 +4,12 @@ import { filecoinCalibration } from "viem/chains";
 import { useAccount } from "wagmi";
 
 export default function Login() {
-<<<<<<< HEAD
-=======
 
->>>>>>> 30f3b97 (Add UI)
   const account = useAccount();
   const signer = useEthersSigner({ chainId: filecoinCalibration.id });
 
   return (
     <div className={`w-screen h-screen bg-HeroImage bg-cover text-N16`}>
-<<<<<<< HEAD
       <div className="w-full h-full p-20 flex items-center">
         <div>
           <h1 className="py-12 text-DisplayLarge">
@@ -113,7 +109,6 @@ export default function Login() {
                 );
               }}
             </ConnectButton.Custom>
-=======
       <div className='w-full h-full p-20 flex items-center'>
         <div>
           <h1 className='py-12 text-DisplayLarge'>Welcome to Monas<span className='text-P90'>.</span></h1>
@@ -208,8 +203,7 @@ export default function Login() {
                   );
                 }}
               </ConnectButton.Custom>
-            
->>>>>>> 30f3b97 (Add UI)
+          
           </div>
         </div>
       </div>

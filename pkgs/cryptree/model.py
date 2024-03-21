@@ -7,10 +7,6 @@ class ChildNodeInfo(BaseModel):
     cid: str
     sk: bytes
 
-class CryptreeNodeModel(BaseModel):
-    metadata: Dict
-    subfolder_key: bytes
-
 class Metadata(BaseModel):
     name: str
     owner_id: str
@@ -19,6 +15,10 @@ class Metadata(BaseModel):
     child_info: List[ChildNodeInfo] = []
     file_cid: Optional[str] = None  # ファイルCIDはファイルノードでのみ設定されます
     enc_file_key: Optional[bytes] = None  # ファイルノードでのみ設定されます
+
+class CryptreeNodeModel(BaseModel):
+    metadata: Metadata
+    subfolder_key: bytes
 
 class GenerateRootNodeRequest(BaseModel):
     name: str

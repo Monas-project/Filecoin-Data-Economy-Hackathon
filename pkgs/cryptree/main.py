@@ -69,17 +69,19 @@ async def signup(request: GenerateRootNodeRequest):
         )
 
         try:
-            new_node = CryptreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=False)
+            root_node = CryptreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=True)
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
         
+        root_id, _ = Tableland.get_root_info(request.owner_id)
         return {
             "root_node": {
-                "metadata": new_node.metadata,
-                "subfolder_key": new_node.subfolder_key
+                "metadata": root_node.metadata,
+                "subfolder_key": root_node.subfolder_key
             },
             "access_token": access_token,
-            "token_type": "bearer"
+            "token_type": "bearer",
+            "root_id": root_id,
         }
     else:
         raise HTTPException(status_code=401, detail="Invalid signature or address")
@@ -105,6 +107,7 @@ async def login(signature: str = Body(...), address: str = Body(...)):
             },
             "access_token": access_token,
             "token_type": "bearer",
+            "root_id": root_id,
         }
     else:
         raise HTTPException(status_code=401, detail="Invalid signature or address")
@@ -113,7 +116,7 @@ async def login(signature: str = Body(...), address: str = Body(...)):
 @router.post("/create")
 async def create(request: CreateNodeRequest, current_user: dict = Depends(get_current_user)):
     parent_cid = request.parent_cid
-    parent_subfolder_key = request.subfolder_key.encode()
+    parent_subfolder_key = request.subfolder_key
     current_node = CryptreeNode.get_node(parent_cid, parent_subfolder_key)
     file_data = request.file_data.encode() if request.file_data else None
     try:

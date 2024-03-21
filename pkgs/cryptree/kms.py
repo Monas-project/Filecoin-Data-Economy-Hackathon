@@ -1,0 +1,58 @@
+
+import boto3
+from botocore.exceptions import ClientError
+from dotenv import load_dotenv
+import os
+load_dotenv()
+
+class Kms:
+    def __init__(self, region_name='ap-northeast-1', access_key=os.getenv('AWS_ACCESS_KEY_ID'), secret_key=os.getenv('AWS_SECRET_ACCESS_KEY')):
+        self.client = boto3.client(
+            'kms',
+            region_name=region_name,
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+        )
+
+    def create_key(self, description, key_usage="ENCRYPT_DECRYPT", customer_master_spec="SYMMETRIC_DEFAULT")-> str:
+        response = self.client.create_key(
+            Description=description,
+            KeyUsage=key_usage,
+            CustomerMasterKeySpec=customer_master_spec
+        )
+        return response['KeyMetadata']['KeyId']
+        
+
+    def encrypt(self, key_id: str, plaintext: bytes):
+        try:
+            return self.client.encrypt(
+                KeyId=key_id,
+                Plaintext=plaintext
+            )
+        except ClientError as e:
+            # エラー処理
+            if e.response['Error']['Code'] == 'NotFoundException':
+                print("指定されたキーが存在しないか、アクセスできません。")
+            else:
+                # その他のエラー処理
+                print(e.response['Error']['Message'])
+    
+    def decrypt(self, key_id: str, ciphertext_blob: bytes):
+        try:
+            return self.client.decrypt(
+                KeyId=key_id,
+                CiphertextBlob=ciphertext_blob
+            )
+        except ClientError as e:
+            # エラー処理
+            if e.response['Error']['Code'] == 'NotFoundException':
+                print("指定されたキーが存在しないか、アクセスできません。")
+            else:
+                # その他のエラー処理
+                print(e.response['Error']['Message'])
+
+
+
+# client = Kms(access_key=, secret_key="")
+
+    

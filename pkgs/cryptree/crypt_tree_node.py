@@ -8,6 +8,8 @@ from fake_ipfs import FakeIPFS
 import ipfshttpclient
 from model import Metadata, ChildNodeInfo, CryptreeNodeModel
 from tableland import Tableland
+import base64
+from kms import Kms
 
 # 例: 環境変数 'TEST_ENV' が 'True' の場合にのみ実際の接続を行う
 if os.environ.get('TEST_ENV') != 'True':
@@ -23,12 +25,12 @@ class CryptreeNode(CryptreeNodeModel):
     @classmethod
     def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CryptreeNode'] = None, file_data: Optional[bytes] = None) -> 'CryptreeNode':
         # キー生成
-        subfolder_key = Fernet.generate_key()
+        if parent is None:
+            kms_client = Kms()
+            subfolder_key = kms_client.create_key(description=f'{owner_id}_{name}', key_usage="ENCRYPT_DECRYPT", customer_master_spec="SYMMETRIC_DEFAULT")
+        else:
+            subfolder_key = Fernet.generate_key()
         file_key = Fernet.generate_key() if not isDirectory else None
-
-        # 暗号化スイートの初期化
-        sk_cipher_suite = Fernet(subfolder_key)
-        file_cipher_suite = Fernet(file_key) if file_key else None
 
         # メタデータの作成
         metadata = Metadata(
@@ -40,16 +42,16 @@ class CryptreeNode(CryptreeNodeModel):
         )
 
         # ファイルの場合、ファイルデータを暗号化
-        if file_data and file_cipher_suite:
-            enc_file_data = file_cipher_suite.encrypt(file_data)
+        if not isDirectory:
+            print(f"file_key: {file_key}")
+            enc_file_data = CryptreeNode.encrypt(file_key, file_data).decode()
             file_cid = client.add_bytes(enc_file_data)
             metadata.file_cid = file_cid
-            metadata.enc_file_key = sk_cipher_suite.encrypt(file_key).decode()
+            metadata.enc_file_key = CryptreeNode.encrypt(subfolder_key, file_key).decode()
 
         # メタデータを暗号化してIPFSにアップロード
-        enc_metadata = sk_cipher_suite.encrypt(metadata.model_dump_json().encode())
+        enc_metadata = CryptreeNode.encrypt(subfolder_key, metadata.model_dump_json().encode())
         cid = client.add_bytes(enc_metadata)
-
         # # ルートノードの新規作成かどうかを判定
         if parent is None:
             Tableland.insert_root_info(owner_id, cid, subfolder_key)
@@ -76,7 +78,7 @@ class CryptreeNode(CryptreeNodeModel):
         )
     
     def encrypt_metadata(self) -> bytes:
-        return Fernet(self.subfolder_key).encrypt(self.metadata.model_dump_json().encode())
+        return CryptreeNode.encrypt(self.subfolder_key, self.metadata.model_dump_json().encode())
 
     @classmethod
     def update_all_nodes(cls, address: str, new_cid: str, target_subfolder_key: str):
@@ -114,12 +116,38 @@ class CryptreeNode(CryptreeNodeModel):
                     def update_all_again_callback(address, new_cid):
                         cls.update_all_nodes(address, new_cid, node.subfolder_key)
                     cls.update_node(child_node, address, target_subfolder_key, new_cid, update_all_again_callback)
-        
+
     @classmethod
-    def get_node(cls, cid: str, sk: bytes) -> 'CryptreeNode':
+    def get_node(cls, cid: str, sk: str) -> 'CryptreeNode':
         enc_metadata = client.cat(cid)
-        metadata = json.loads(Fernet(sk).decrypt(enc_metadata).decode())
-        return CryptreeNode(metadata=metadata, subfolder_key=sk)
+        print(f"enc_metadata: {enc_metadata}")
+        print(f"sk: {sk}")
+        metadata_str = CryptreeNode.decrypt(sk, enc_metadata).decode()
+        metadata = json.loads(metadata_str)
+        return cls(metadata=metadata, subfolder_key=sk)
+
+    @staticmethod
+    def encrypt(key: str, data: bytes) -> bytes:
+        print(f"key: {key}")
+        decoded_key = base64.urlsafe_b64decode(key)
+        print(f"decoded_key: {decoded_key}")
+        # ルートキーはAWS KMSのKeyIDなので、32バイトのバイナリデータの場合はFernetで暗号化
+        if len(decoded_key) == 32:
+            return Fernet(key).encrypt(data)
+        else:
+            kms_client = Kms()
+            response = kms_client.encrypt(key, data)
+            return response['CiphertextBlob']
+
+    @staticmethod
+    def decrypt(key: str, data: bytes) -> bytes:
+        decoded_key = base64.urlsafe_b64decode(key)
+        if len(decoded_key) == 32:
+            return Fernet(key).decrypt(data)
+        else:
+            kms_client = Kms()
+            response = kms_client.decrypt(key, data)
+            return response['Plaintext']
 
     """
     再暗号化(アクセス拒否したときに行う処理)関数

@@ -1,5 +1,9 @@
 # Filecoin-Data-Economy-Hackathon
 
+## PushProtocol Signer Info(EThereum Sepolia)
+
+[0x69d3E7219CE2259654EcBBFf9597936BaDF5Be52](https://sepolia.etherscan.io/address/0x69d3E7219CE2259654EcBBFf9597936BaDF5Be52)
+
 ## How to work
 
 - setup
@@ -20,7 +24,9 @@
 
     ```txt
     NEXT_PUBLIC_ENABLE_TESTNETS=
-    NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=
+    WALLET_CONNECT_PROJECT_ID=
+    SEPOLIA_RPC_URL=
+    PUSH_PROTOCOL_PRIVATE_KEY=
     ```
 
 - install
@@ -112,3 +118,4 @@
 6. [Filfox Contract Verification API Documents](https://filfox.notion.site/Filfox-Contract-Verification-API-Documents-c48d361c949348acb0bf806871ddd2c2)
 7. [TableLand Studio](https://studio.tableland.xyz/mashharuki/monas)
 8. [wagmi V1 signMessage](https://1.x.wagmi.sh/examples/sign-message)
+9. [PushProtocol SDK - RestAPI](https://github.com/ethereum-push-notification-service/push-sdk/blob/main/packages/restapi/README.md)

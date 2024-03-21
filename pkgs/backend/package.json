@@ -23,7 +23,8 @@
     "lint:fix": "npm run lint:ts -- --fix && npm run lint:sol -- --fix",
     "prettier": "prettier '**/*.{js,ts,json,sol,md}' --check",
     "prettier:fix": "npm run prettier -- --write",
-    "format": "npm run prettier:fix && npm run lint:fix"
+    "format": "npm run prettier:fix && npm run lint:fix",
+    "cp": "cp -r artifacts ../frontend/contracts"
   },
   "keywords": [
     "tableland",

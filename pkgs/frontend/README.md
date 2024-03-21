@@ -36,3 +36,41 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+
+## Sample for PushProtcol
+
+`index.ts`
+
+```ts
+import { useEthersSigner } from "@/hooks/useEthersProvider";
+import { getPushInfo, sendNotification } from "@/hooks/usePushProtocol";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { useEffect } from "react";
+import { filecoinCalibration } from "viem/chains";
+import { useAccount } from "wagmi";
+
+export default function Login() {
+  const account = useAccount();
+  const signer = useEthersSigner({ chainId: filecoinCalibration.id });
+
+  useEffect(() => {
+    const init = async () => {
+      if (signer != undefined) {
+        await getPushInfo(signer);
+      }
+    };
+    init();
+  }, [account]);
+
+  const sendNotificate = async () => {
+    await sendNotification();
+  };
+
+  return (
+    <div className="w-screen h-screen flex flex-row">
+      <ConnectButton />
+      <button onClick={sendNotificate}>Send Sample Notification</button>
+    </div>
+  );
+}
+```

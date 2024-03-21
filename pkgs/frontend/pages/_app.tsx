@@ -15,31 +15,6 @@ import { ResponseData } from "./api/env";
   filecoinCalibration
 } from 'wagmi/chains';
 
-const {
-  chains,
-  publicClient,
-  webSocketPublicClient
-} = configureChains(
-  [
-    filecoinCalibration,
-    ...(process.env.NEXT_PUBLIC_ENABLE_TESTNETS === 'true' ? [filecoinCalibration] : []),
-  ],
-  [publicProvider()]
-);
-
-const { connectors } = getDefaultWallets({
-  appName: 'Monas',
-  projectId: process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID!,
-  chains,
-});
-
-const wagmiConfig = createConfig({
-  // autoConnect: true,
-  connectors,
-  publicClient,
-  webSocketPublicClient,
-});
-
 /**
  * MyApp Component
  * @param param0

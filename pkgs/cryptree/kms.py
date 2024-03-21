@@ -33,9 +33,11 @@ class Kms:
             # エラー処理
             if e.response['Error']['Code'] == 'NotFoundException':
                 print("指定されたキーが存在しないか、アクセスできません。")
+                raise ValueError("指定されたキーが存在しないか、アクセスできません。") from e
             else:
                 # その他のエラー処理
                 print(e.response['Error']['Message'])
+                raise e
     
     def decrypt(self, key_id: str, ciphertext_blob: bytes):
         try:
@@ -47,12 +49,8 @@ class Kms:
             # エラー処理
             if e.response['Error']['Code'] == 'NotFoundException':
                 print("指定されたキーが存在しないか、アクセスできません。")
+                raise ValueError("指定されたキーが存在しないか、アクセスできません。") from e
             else:
                 # その他のエラー処理
                 print(e.response['Error']['Message'])
-
-
-
-# client = Kms(access_key=, secret_key="")
-
-    
+                raise e

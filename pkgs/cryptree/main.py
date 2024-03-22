@@ -10,17 +10,16 @@ from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest, 
 import os
 from dotenv import load_dotenv
 from fake_ipfs import FakeIPFS
-
 import ipfshttpclient
-
-if os.environ.get('TEST_ENV') != 'True':
-    client = ipfshttpclient.connect()
-else:
-    client = FakeIPFS()  # テスト用の偽のIPFSクライアント
-
 
 # .envファイルの内容を読み込見込む
 load_dotenv()
+
+# 例: 環境変数 'TEST_ENV' が 'True' の場合にのみ実際の接続を行う
+if os.environ.get('TEST_ENV') != 'True':
+    ipfs_client = ipfshttpclient.connect()
+else:
+    ipfs_client = FakeIPFS()  # テスト用の偽のIPFSクライアント
 
 w3 = Web3()
 app = FastAPI()
@@ -77,7 +76,7 @@ async def signup(request: GenerateRootNodeRequest = Body(...)):
         )
 
         try:
-            root_node = CryptreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=True)
+            root_node = CryptreeNode.create_node(name=request.name, owner_id=request.owner_id, isDirectory=True, ipfs_client=ipfs_client)
         except Exception as e:
             raise HTTPException(status_code=400, detail=str(e))
 
@@ -106,7 +105,7 @@ async def login(signature: str = Body(...), address: str = Body(...)):
         )
         root_id, root_key = Tableland.get_root_info(address)
 
-        node = CryptreeNode.get_node(root_id, root_key)
+        node = CryptreeNode.get_node(root_id, root_key, ipfs_client)
         return {
             "root_node": {
                 "metadata": node.metadata,
@@ -124,10 +123,10 @@ async def login(signature: str = Body(...), address: str = Body(...)):
 async def create(request: CreateNodeRequest = Body(...), current_user: dict = Depends(get_current_user)):
     parent_cid = request.parent_cid
     parent_subfolder_key = request.subfolder_key
-    current_node = CryptreeNode.get_node(parent_cid, parent_subfolder_key)
+    current_node = CryptreeNode.get_node(parent_cid, parent_subfolder_key, ipfs_client)
     file_data = request.file_data.encode() if request.file_data else None
     try:
-        new_node = CryptreeNode.create_node(name=request.name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data)
+        new_node = CryptreeNode.create_node(name=request.name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data, ipfs_client=ipfs_client)
         root_id, _ = Tableland.get_root_info(current_user["address"]);
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -142,7 +141,7 @@ async def fetch(request: FetchNodeRequest = Body(...), current_user: dict = Depe
     subfolder_key = request.subfolder_key
     cid = request.cid
     address = request.owner_id
-    node = CryptreeNode.get_node(cid, subfolder_key)
+    node = CryptreeNode.get_node(cid, subfolder_key, ipfs_client)
     children = node.metadata.children
     root_id, _ = Tableland.get_root_info(address)
     response = FetchNodeResponse(
@@ -152,7 +151,6 @@ async def fetch(request: FetchNodeRequest = Body(...), current_user: dict = Depe
     )
     # fileの場合、ファイルデータを復号
     if len(children) == 1 and children[0].fk is not None:
-        ipfs_client = client
         enc_file_data = ipfs_client.cat(children[0].cid)
         file_data = CryptreeNode.decrypt(children[0].fk, enc_file_data).decode()
         response.file_data = file_data

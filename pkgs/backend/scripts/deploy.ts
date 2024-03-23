@@ -1,13 +1,10 @@
 import "@nomiclabs/hardhat-ethers";
 import { ethers, network } from "hardhat";
-import {
-  resetContractAddressesJson,
-  writeContractAddress,
-} from "../helper/contractsJsonHelper";
+import { writeContractAddress } from "../helper/contractsJsonHelper";
 
 async function main() {
   // set Contract Address json
-  resetContractAddressesJson({ network: network.name });
+  // resetContractAddressesJson({ network: network.name });
 
   const FileInfo = await ethers.getContractFactory("FileInfo");
   const fileInfo = await FileInfo.deploy();

@@ -6,7 +6,7 @@ from jose import jwt, JWTError
 from web3 import Web3
 from eth_account.messages import encode_defunct
 from tableland import Tableland
-from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest, FetchNodeResponse
+from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest, FetchNodeResponse, ReEncryptRequest
 import os
 from dotenv import load_dotenv
 from fake_ipfs import FakeIPFS
@@ -155,6 +155,28 @@ async def fetch(request: FetchNodeRequest = Body(...), current_user: dict = Depe
         file_data = CryptreeNode.decrypt(children[0].fk, enc_file_data).decode()
         response.file_data = file_data
     return response
+
+@router.post("/re-encrypt")
+async def re_encrypt(request: ReEncryptRequest = Body(...), current_user: dict = Depends(get_current_user)):
+    parent_node = CryptreeNode.get_node(request.parent_cid, request.parent_subfolder_key, ipfs_client)
+    # Re-encryptするノードの情報を取得
+    target_info = next((child for child in parent_node.metadata.children if child.cid == request.target_cid), None)
+    # CryptreeNodeクラスのget_nodeメソッドを使って、Re-encryptするノードを取得
+    target_node = CryptreeNode.get_node(request.target_cid, target_info.sk, ipfs_client)
+    # Re-encrypt処理を実行
+    new_node = target_node.re_encrypt_and_update(parent_node, ipfs_client)
+
+    root_id = current_user.root_id
+    new_root_id, _ = Tableland.get_root_info(current_user["address"])
+    # 新しいルートIDになるまでループ
+    while root_id == new_root_id:
+        new_root_id, _ = Tableland.get_root_info(current_user["address"])
+
+    return {
+        "new_subfolder_key": new_node.subfolder_key,
+        "new_cid": new_node.cid,
+        "root_id": new_root_id,
+    }
 
 
 app.include_router(router, prefix="/api")

@@ -50,3 +50,9 @@ class FetchNodeResponse(BaseModel):
     subfolder_key: str
     root_id: str
     file_data: Optional[str] = None # ファイルの場合のみ含まれる
+
+
+class ReEncryptRequest(BaseModel):
+    target_cid: str # Re-encryptするノードのCID
+    parent_subfolder_key: str # Re-encryptするノードの親ノードのサブフォルダキー
+    parent_cid: str # Re-encryptするノードの親ノードのCID

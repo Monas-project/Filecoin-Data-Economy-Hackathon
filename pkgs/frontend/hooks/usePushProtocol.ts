@@ -2,7 +2,7 @@ import { getEnv } from "@/utils/getEnv";
 import { ListInfo } from "@/utils/type";
 import { PushAPI } from "@pushprotocol/restapi";
 import { ENV } from "@pushprotocol/restapi/src/lib/constants";
-import { Signer, ethers } from "ethers";
+import { ethers } from "ethers";
 
 /**
  * createSigner for PushProtocol
@@ -21,7 +21,7 @@ const createSignerForPushProtocol = async () => {
 /**
  * init PushSDK
  */
-const initPushSDK = async (signer: Signer) => {
+const initPushSDK = async (signer: any) => {
   const pushUser = await PushAPI.initialize(signer, {
     env: ENV.STAGING,
   });

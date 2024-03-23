@@ -1,3 +1,4 @@
+import { GlobalProvider } from "@/context/GlobalProvider";
 import { getEnv } from "@/utils/getEnv";
 import {
   RainbowKitProvider,
@@ -78,7 +79,9 @@ function MyApp({ Component, pageProps }: AppProps) {
                 "https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon",
             }}
           >
-            <Component {...pageProps} />
+            <GlobalProvider>
+              <Component {...pageProps} />
+            </GlobalProvider>
           </RainbowKitProvider>
         </WagmiConfig>
       )}

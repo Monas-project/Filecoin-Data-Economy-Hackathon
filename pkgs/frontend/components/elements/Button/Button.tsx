@@ -54,7 +54,7 @@ const Button: FC<ButtonProps> = ({ onClick, size = 'medium', layout = 'neutral',
             <div className={`${textContainerSize[size]} ${labelVisible ? 'block' : 'hidden'}`}>
                 {children}
             </div>
-            <div className={`flex justify-center pt-0.5
+            <div className={`flex justify-center pt-[3px] pb-[1px]
                             ${fotterVisible ? 'flex' : 'hidden'}`}>
                 <ChevronDown16Regular />
             </div>

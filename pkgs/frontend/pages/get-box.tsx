@@ -23,7 +23,7 @@ export default function GetBox() {
                                 <Button fotterVisible={true}>Modified</Button>
                             </div>
                             <div className="flex flex-row space-x-6">
-                                <Button onClick={() => setIsGetBoxModalOpen(true)} layout="neutral" headerVisible={true} headerIcon={<MailInbox20Filled />}>Create Folder</Button>
+                                <Button onClick={() => setIsGetBoxModalOpen(true)} layout="neutral" headerVisible={true} headerIcon={<MailInbox20Filled />}>Get Box</Button>
                             </div>
                         </div>
                     </div>

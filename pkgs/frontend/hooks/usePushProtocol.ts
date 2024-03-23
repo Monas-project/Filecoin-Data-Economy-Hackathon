@@ -55,7 +55,12 @@ export const getPushInfo = async (signer: any) => {
 /**
  * send Notification
  */
-export const sendNotification = async (to: string) => {
+export const sendNotification = async (
+  to: string,
+  cid: any,
+  key: any,
+  fileInfo: any
+) => {
   // init PushSDK
   const signer = await createSignerForPushProtocol();
   const pushUser = await initPushSDK(signer);
@@ -66,9 +71,9 @@ export const sendNotification = async (to: string) => {
       body: `
           This is a test Notification!!!!!!
 
-          CID: aaaaaa
-          Key: bbbbbb
-          FileInfo: cccccc
+          CID: ${cid}
+          Key: ${key}
+          FileInfo: ${fileInfo}
           
         `,
     },

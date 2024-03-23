@@ -76,7 +76,9 @@ export default function GetBox() {
                                 </div>
                               </td>
                               <td className="flex-col space-y-3 text-BodyLarge [&>div]:flex [&>div]:flex-row">
-                                <div className="space-x-2">{push.message}</div>
+                                <div className="space-x-2 whitespace-pre-line">
+                                  {`${push.message}`}
+                                </div>
                               </td>
                             </>
                           ))}

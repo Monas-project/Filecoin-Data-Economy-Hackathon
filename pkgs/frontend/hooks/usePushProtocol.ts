@@ -20,6 +20,7 @@ const createSignerForPushProtocol = async () => {
 
 /**
  * init PushSDK
+ * @param signer pushprotocol's signer
  */
 const initPushSDK = async (signer: any) => {
   const pushUser = await PushAPI.initialize(signer, {
@@ -30,6 +31,7 @@ const initPushSDK = async (signer: any) => {
 
 /**
  * get PushInfo
+ * @param signer connected account's signer
  */
 export const getPushInfo = async (signer: any) => {
   // init PushSDK
@@ -46,7 +48,7 @@ export const getPushInfo = async (signer: any) => {
   // console.log("channelInfo:", channelInfo);
 
   // get notification info
-  const listInfo: ListInfo[] = await pushUser.notification.list("INBOX");
+  const listInfo: ListInfo[] = await pushUser.notification.list("SPAM");
   console.log("listInfo:", listInfo);
 
   return listInfo;

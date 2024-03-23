@@ -8,19 +8,20 @@ import { Database } from "@tableland/sdk";
 import { Contract, ethers } from "ethers";
 
 // table schema
-interface TableData {
+export type TableData = {
   id: number;
   fileHash: string;
   locationId: string;
-}
+};
 
 var contractAddress: string;
 var contract: Contract;
+var db: Database;
 
 /**
  * crateContract Instance method
  */
-export const createContract = () => {
+export const createContract = (signer: any) => {
   // create provider
   const provider = new ethers.JsonRpcProvider(RPC_URL);
   // コントラクトのインスタンスを生成
@@ -31,6 +32,8 @@ export const createContract = () => {
   );
   // set contract address
   contractAddress = FILEINFO_CONTRACT_ADDRESS;
+  // create db instance
+  db = new Database({ signer: signer });
 };
 
 /**
@@ -43,27 +46,51 @@ export const createContract = () => {
  * delete table method
  */
 export const deleteTableData = async (id: any) => {
-  // delete
-  const tx = await contract.deleteFileInfo(id);
-  console.log("tx hash:", tx.hash);
+  try {
+    // delete
+    const { meta: write } = await db
+      .prepare(`DELETE FROM ${TABLE_NAME} WHERE id = ?;`)
+      .bind(id)
+      .run();
+    await write.txn?.wait();
+    console.log("Tx Hash:", write.txn?.transactionHash);
+  } catch (err) {
+    console.error("err:", err);
+  }
 };
 
 /**
  * insert table method
  */
 export const insertTableData = async (rootId: any, fileCid: any) => {
-  // insert
-  const tx = await contract.insertFileInfo(rootId, fileCid);
-  console.log("tx hash:", tx.hash);
+  try {
+    // insert
+    const { meta: write } = await db
+      .prepare(`INSERT INTO ${TABLE_NAME} (rootId, fileCid) VALUES (?, ?);`)
+      .bind(rootId, fileCid)
+      .run();
+    await write.txn?.wait();
+    console.log("Tx Hash:", write.txn?.transactionHash);
+  } catch (err) {
+    console.error("err:", err);
+  }
 };
 
 /**
  * update table method
  */
 export const updateTableData = async (id: any, rootId: any, fileCid: any) => {
-  // update
-  const tx = await contract.updateFileInfo(id, rootId, fileCid);
-  console.log("tx hash:", tx.hash);
+  try {
+    // update
+    const { meta: write } = await db
+      .prepare(`UPDATE ${TABLE_NAME} SET rootId = ?, fileCid = ? WHERE id = ?;`)
+      .bind(rootId, fileCid, id)
+      .run();
+    await write.txn?.wait();
+    console.log("Tx Hash:", write.txn?.transactionHash);
+  } catch (err) {
+    console.error("err:", err);
+  }
 };
 
 /**
@@ -93,10 +120,7 @@ export const getRootHash = async () => {
  * getAllTable method
  * @returns
  */
-export const getAllTableData = async (signer: any) => {
-  // Create a database connection
-  const db = new Database({ signer: signer });
-
+export const getAllTableData = async () => {
   // get all table data
   const { results } = await db
     .prepare(`SELECT * FROM ${TABLE_NAME};`)

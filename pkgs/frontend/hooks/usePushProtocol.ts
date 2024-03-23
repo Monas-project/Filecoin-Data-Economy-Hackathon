@@ -55,17 +55,15 @@ export const getPushInfo = async (signer: any) => {
 /**
  * send Notification
  */
-export const sendNotification = async () => {
+export const sendNotification = async (to: string) => {
   // init PushSDK
   const signer = await createSignerForPushProtocol();
   const pushUser = await initPushSDK(signer);
   // send notification
-  const sendNotifRes = await pushUser.channel.send(
-    ["0x69d3E7219CE2259654EcBBFf9597936BaDF5Be52"],
-    {
-      notification: {
-        title: "This is a test Notification",
-        body: `
+  const sendNotifRes = await pushUser.channel.send([to], {
+    notification: {
+      title: "This is a test Notification",
+      body: `
           This is a test Notification!!!!!!
 
           CID: aaaaaa
@@ -73,8 +71,7 @@ export const sendNotification = async () => {
           FileInfo: cccccc
           
         `,
-      },
-    }
-  );
+    },
+  });
   console.log("sendNotifRes:", { sendNotifRes });
 };

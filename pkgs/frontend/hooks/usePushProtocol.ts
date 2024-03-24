@@ -50,6 +50,8 @@ export const getPushInfo = async (signer: any) => {
   // get notification info
   const listInfo: ListInfo[] = await pushUser.notification.list("SPAM");
   console.log("listInfo:", listInfo);
+  const listInfo2: ListInfo[] = await pushUser.notification.list("INBOX");
+  console.log("listInfo2:", listInfo2);
 
   return listInfo;
 };

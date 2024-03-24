@@ -13,6 +13,7 @@ import {
   createContract,
   deleteTableData,
   getAllTableData,
+  getSelectedTableData,
   insertTableData,
 } from "@/hooks/useContract";
 import { sendNotification } from "@/hooks/usePushProtocol";
@@ -40,6 +41,7 @@ const fileTableTr = [
 
 export default function MyBox() {
   const [isSelected, setIsSelected] = useState<boolean>(false);
+  const [isSelectedId, setIsSelectedId] = useState<any>(0);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [tableDatas, setTableDatas] = useState<TableData[]>();
   const [to, setTo] = useState<any>();
@@ -170,13 +172,16 @@ export default function MyBox() {
   /**
    * shareFile function
    */
-  const shareFile = async (cid: any, key: any, fileInfo: any) => {
+  const shareFile = async () => {
     try {
       globalContext.setLoading(true);
 
       console.log("to:", to);
+      // get selectedId's table data
+      const results: TableData[] = await getSelectedTableData(isSelectedId);
+      console.log("results[0]:", results[0]);
       // call sendNotification method
-      await sendNotification(to, cid, key, fileInfo);
+      await sendNotification(to, results[0].fileCid, results[0].rootId, "test");
 
       toast.success(
         "Share File Success!! Please wait a moment until it is reflected.",
@@ -375,7 +380,10 @@ export default function MyBox() {
                     {tableDatas?.map((data: TableData, i) => (
                       <tr
                         key={i}
-                        onClick={() => setIsSelected(!isSelected)}
+                        onClick={() => {
+                          setIsSelected(!isSelected);
+                          setIsSelectedId(data.id);
+                        }}
                         className={`w-full flex flex-row pl-8 py-3 space-x-8 border-b border-NV150 text-BodyLarge text-NV10 items-center group 
                                               ${
                                                 isSelected
@@ -476,7 +484,8 @@ export default function MyBox() {
                   layout="primary"
                   size="large"
                   onClick={async () => {
-                    await shareFile("test", "test", "test");
+                    // call shareFile method
+                    await shareFile();
                   }}
                 >
                   send

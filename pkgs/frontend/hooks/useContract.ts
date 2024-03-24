@@ -10,8 +10,8 @@ import { Contract, ethers } from "ethers";
 // table schema
 export type TableData = {
   id: number;
-  fileHash: string;
-  locationId: string;
+  fileCid: string;
+  rootId: string;
 };
 
 var contractAddress: string;
@@ -117,13 +117,26 @@ export const getRootHash = async () => {
 };
 
 /**
- * getAllTable method
+ * getAllTableData method
  * @returns
  */
 export const getAllTableData = async () => {
   // get all table data
   const { results } = await db
     .prepare(`SELECT * FROM ${TABLE_NAME};`)
+    .all<TableData>();
+
+  return results;
+};
+
+/**
+ * getSelectedTableData method
+ */
+export const getSelectedTableData = async (id: any) => {
+  // get all table data
+  const { results } = await db
+    .prepare(`SELECT * FROM ${TABLE_NAME} WHERE id = ?;`)
+    .bind(id)
     .all<TableData>();
 
   return results;

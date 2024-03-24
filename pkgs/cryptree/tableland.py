@@ -3,6 +3,7 @@ from web3 import Web3, HTTPProvider
 import os
 from dotenv import load_dotenv
 import json
+from kms import Kms
 
 class Tableland:
     # クラス変数の初期化
@@ -34,7 +35,7 @@ class Tableland:
     @classmethod
     def insert_root_info(cls, address: str, root_id: str, root_key: bytes):
         contract = cls.get_contract()
-        statement = f"INSERT INTO {cls.root_table_name} VALUES ('{address}', '{root_id}', '{root_key.decode()}');"
+        statement = f"INSERT INTO {cls.root_table_name} VALUES ('{address}', '{root_id}', '{root_key}');"
         nonce = cls.web3.eth.get_transaction_count(cls.admin_account)
         transaction = cls.build_transaction(contract, statement, nonce)
         return cls.send_transaction(transaction)
@@ -54,7 +55,7 @@ class Tableland:
         rows = response.json()
         if len(rows) == 0:
             raise ValueError("No rows found for the given address.")
-        return rows[0]["root_id"], rows[0]["root_key"].encode()
+        return rows[0]["root_id"], rows[0]["root_key"]
 
     @classmethod
     def build_transaction(cls, contract, statement, nonce):

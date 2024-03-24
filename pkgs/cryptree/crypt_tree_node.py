@@ -1,69 +1,68 @@
 from pydantic import Field
 from typing import Optional
-import os
 import json
 from datetime import datetime
 from cryptography.fernet import Fernet
-from fake_ipfs import FakeIPFS
-import ipfshttpclient
+from ipfshttpclient import Client
 from model import Metadata, ChildNodeInfo, CryptreeNodeModel
 from tableland import Tableland
-
-# 例: 環境変数 'TEST_ENV' が 'True' の場合にのみ実際の接続を行う
-if os.environ.get('TEST_ENV') != 'True':
-    client = ipfshttpclient.connect()
-else:
-    client = FakeIPFS()  # テスト用の偽のIPFSクライアント
+import base64
+from kms import Kms
 
 class CryptreeNode(CryptreeNodeModel):
     metadata: Metadata = Field(..., alias="metadata")
     subfolder_key: str = Field(..., alias="subfolder_key")
+    cid: str = Field(..., alias="cid")
+
+    @property
+    def is_leaf(self) -> bool:
+        return len(self.metadata.children) == 0
+
+    @property
+    def is_file(self) -> bool:
+        return len(self.metadata.children) == 1 and self.metadata.children[0].fk is not None
 
     # ノードを作成する
     @classmethod
-    def create_node(cls, name: str, owner_id: str, isDirectory: bool, parent: Optional['CryptreeNode'] = None, file_data: Optional[bytes] = None) -> 'CryptreeNode':
+    def create_node(cls, name: str, owner_id: str, isDirectory: bool, ipfs_client: Client, parent: Optional['CryptreeNode'] = None, file_data: Optional[str] = None) -> 'CryptreeNode':
         # キー生成
-        subfolder_key = Fernet.generate_key()
-        file_key = Fernet.generate_key() if not isDirectory else None
-
-        # 暗号化スイートの初期化
-        sk_cipher_suite = Fernet(subfolder_key)
-        file_cipher_suite = Fernet(file_key) if file_key else None
+        if parent is None:
+            kms_client = Kms()
+            subfolder_key = kms_client.create_key(description=f'{owner_id}_{name}', key_usage="ENCRYPT_DECRYPT", customer_master_spec="SYMMETRIC_DEFAULT")
+        else:
+            subfolder_key = Fernet.generate_key().decode()
+        file_key = Fernet.generate_key().decode() if not isDirectory else None
 
         # メタデータの作成
         metadata = Metadata(
             name=name,
             owner_id=owner_id,
             created_at=datetime.now(),
-            file_cid=None,
-            child_info=[]
+            children=[]
         )
 
-        # ファイルの場合、ファイルデータを暗号化
-        if file_data and file_cipher_suite:
-            enc_file_data = file_cipher_suite.encrypt(file_data)
-            file_cid = client.add_bytes(enc_file_data)
-            metadata.file_cid = file_cid
-            metadata.enc_file_key = sk_cipher_suite.encrypt(file_key).decode()
+        if not isDirectory:
+            # ファイルの場合、ファイルデータを暗号化
+            enc_file_data = CryptreeNode.encrypt(file_key, file_data)
+            cid = ipfs_client.add_bytes(enc_file_data)
+            file_info = ChildNodeInfo(cid=cid, fk=file_key)
+            metadata.children.append(file_info)
 
         # メタデータを暗号化してIPFSにアップロード
-        enc_metadata = sk_cipher_suite.encrypt(metadata.model_dump_json().encode())
-        cid = client.add_bytes(enc_metadata)
+        enc_metadata = CryptreeNode.encrypt(subfolder_key, metadata.model_dump_json().encode())
+        cid = ipfs_client.add_bytes(enc_metadata)
 
         # # ルートノードの新規作成かどうかを判定
         if parent is None:
             Tableland.insert_root_info(owner_id, cid, subfolder_key)
         else:
-            child_info: ChildNodeInfo = {
-                "cid": cid,
-                "sk": subfolder_key
-            }
-            parent.metadata.child_info.append(child_info)
+            child_info = ChildNodeInfo(cid=cid, sk=subfolder_key)
+            parent.metadata.children.append(child_info)
             parent_enc_metadata = parent.encrypt_metadata()
-            parent_new_cid = client.add_bytes(parent_enc_metadata)
+            parent_new_cid = ipfs_client.add_bytes(parent_enc_metadata)
             root_id, _ = Tableland.get_root_info(owner_id)
             # 親ノードおよびルートノードまでの先祖ノード全てのメタデータを更新
-            CryptreeNode.update_all_nodes(parent.metadata.owner_id, parent_new_cid, parent.subfolder_key)
+            CryptreeNode.update_all_nodes(parent.metadata.owner_id, parent_new_cid, parent.subfolder_key, ipfs_client)
             new_root_id = root_id
             # ルートIDが変更されるまでループ
             while root_id == new_root_id:
@@ -72,17 +71,18 @@ class CryptreeNode(CryptreeNodeModel):
         # インスタンスの作成と返却
         return cls(
             metadata=metadata,
-            subfolder_key=subfolder_key
+            subfolder_key=subfolder_key,
+            cid=cid,
         )
     
     def encrypt_metadata(self) -> bytes:
-        return Fernet(self.subfolder_key).encrypt(self.metadata.model_dump_json().encode())
+        return CryptreeNode.encrypt(self.subfolder_key, self.metadata.model_dump_json().encode())
 
     @classmethod
-    def update_all_nodes(cls, address: str, new_cid: str, target_subfolder_key: str):
+    def update_all_nodes(cls, address: str, new_cid: str, target_subfolder_key: str, ipfs_client: Client):
         # ルートノードのから下の階層に降りながら、該当のサブフォルダキーを持つノードを探し、新しいCIDに更新する
         root_id, root_key = Tableland.get_root_info(address)
-        root_node = cls.get_node(root_id, root_key)
+        root_node = cls.get_node(root_id, root_key, ipfs_client)
 
         # ルートIDの更新
         def update_root_callback(address, new_root_id):
@@ -92,34 +92,111 @@ class CryptreeNode(CryptreeNodeModel):
         if root_node.subfolder_key == target_subfolder_key:
             update_root_callback(address, new_cid)
         else:
-            cls.update_node(root_node, address, target_subfolder_key, new_cid, update_root_callback)
+            cls.update_node(root_node, address, target_subfolder_key, new_cid, ipfs_client, update_root_callback)
 
     @classmethod
-    def update_node(cls, node: 'CryptreeNode', address: str, target_subfolder_key: str, new_cid: str, callback):
-        child_info = node.metadata.child_info
-        for index, child in enumerate(child_info):
-            child_subfolder_key = child.sk.decode()
+    def update_node(cls, node: 'CryptreeNode', address: str, target_subfolder_key: str, new_cid: str, ipfs_client: Client, callback):
+        children = node.metadata.children
+        for index, child in enumerate(children):
+            # fileだった場合はスキップ
+            if child.sk is None:
+                continue
+            child_subfolder_key = child.sk
             # サブフォルダキーが一致する場合、CIDを更新
             if child_subfolder_key == target_subfolder_key:
-                node.metadata.child_info[index].cid = new_cid
+                node.metadata.children[index].cid = new_cid
                 enc_metadata = node.encrypt_metadata()
-                new_cid = client.add_bytes(enc_metadata)
+                new_cid = ipfs_client.add_bytes(enc_metadata)
                 # ここがupdate_root_id or update_all_nodesになる
                 callback(address, new_cid)
                 break
             else:
                 # サブフォルダキーが一致しない場合、さらに子ノードを探索
-                child_node = cls.get_node(child.cid, child.sk)
-                if len(child_node.metadata.child_info) > 0:
+                child_node = cls.get_node(child.cid, child_subfolder_key, ipfs_client)
+                if not child_node.is_leaf:
                     def update_all_again_callback(address, new_cid):
-                        cls.update_all_nodes(address, new_cid, node.subfolder_key)
-                    cls.update_node(child_node, address, target_subfolder_key, new_cid, update_all_again_callback)
-        
+                        cls.update_all_nodes(address, new_cid, node.subfolder_key, ipfs_client)
+                    cls.update_node(child_node, address, target_subfolder_key, new_cid, ipfs_client, update_all_again_callback)
+
     @classmethod
-    def get_node(cls, cid: str, sk: bytes) -> 'CryptreeNode':
-        enc_metadata = client.cat(cid)
-        metadata = json.loads(Fernet(sk).decrypt(enc_metadata).decode())
-        return CryptreeNode(metadata=metadata, subfolder_key=sk)
+    def get_node(cls, cid: str, sk: str, ipfs_client: Client) -> 'CryptreeNode':
+        enc_metadata = ipfs_client.cat(cid)
+        metadata_str = CryptreeNode.decrypt(sk, enc_metadata).decode()
+        metadata = json.loads(metadata_str)
+        return cls(metadata=metadata, subfolder_key=sk, cid=cid)
+
+    @staticmethod
+    def encrypt(key: str, data: bytes) -> bytes:
+        decoded_key = base64.urlsafe_b64decode(key)
+        # ルートキーはAWS KMSのKeyIDなので、32バイトのバイナリデータの場合はFernetで暗号化
+        if len(decoded_key) == 32:
+            return Fernet(key).encrypt(data)
+        else:
+            kms_client = Kms()
+            response = kms_client.encrypt(key, data)
+            return response['CiphertextBlob']
+
+    @staticmethod
+    def decrypt(key: str, data: bytes) -> bytes:
+        decoded_key = base64.urlsafe_b64decode(key)
+        if len(decoded_key) == 32:
+            return Fernet(key).decrypt(data)
+        else:
+            kms_client = Kms()
+            response = kms_client.decrypt(key, data)
+            return response['Plaintext']
+
+    def re_encrypt_and_update(self, parent_node: 'CryptreeNode', ipfs_client: Client) -> 'CryptreeNode':
+        # 指定したノードの更新前のsubfolder_keyを保持
+        old_subfolder_key = self.subfolder_key
+
+        # 指定したノードから最下層のノードに向かって再帰的に再暗号化を行う
+        self = self.re_encrypt(ipfs_client)
+
+        # 指定したノードの親ノードのメタデータを更新
+        for child in parent_node.metadata.children:
+            if child.sk == old_subfolder_key:
+                child.cid = self.cid
+                child.sk = self.subfolder_key
+                break
+        enc_parent_metadata = parent_node.encrypt_metadata()
+        new_parent_cid = ipfs_client.add_bytes(enc_parent_metadata)
+
+        # 親ノードおよびルートノードまでの先祖ノード全てのメタデータを更新
+        CryptreeNode.update_all_nodes(parent_node.metadata.owner_id, new_parent_cid, parent_node.subfolder_key, ipfs_client)
+
+        return self
+
+    def re_encrypt(self, ipfs_client: Client) -> 'CryptreeNode':
+        if self.is_leaf:
+            self.subfolder_key = Fernet.generate_key().decode()
+            enc_metadata = self.encrypt_metadata()
+            self.cid = ipfs_client.add_bytes(enc_metadata)
+            return self
+
+        children = self.metadata.children
+
+        if self.is_file:
+            file_info = children[0]
+            file_data = CryptreeNode.decrypt(file_info.fk, ipfs_client.cat(file_info.cid)).decode()
+            file_info.fk = Fernet.generate_key().decode()
+            enc_file_data = CryptreeNode.encrypt(file_info.fk, file_data.encode())
+            file_info.cid = ipfs_client.add_bytes(enc_file_data)
+            self.subfolder_key = Fernet.generate_key().decode()
+            enc_metadata = self.encrypt_metadata()
+            self.cid = ipfs_client.add_bytes(enc_metadata)
+            return self
+
+        for child_info in children:
+            child_node = CryptreeNode.get_node(child_info.cid, child_info.sk, ipfs_client)
+            new_child_node = child_node.re_encrypt(ipfs_client)
+            child_info.cid = new_child_node.cid
+            child_info.sk = new_child_node.subfolder_key
+
+        self.subfolder_key = Fernet.generate_key().decode()
+        enc_metadata = self.encrypt_metadata()
+        self.cid = ipfs_client.add_bytes(enc_metadata)
+        return self
 
     """
     再暗号化(アクセス拒否したときに行う処理)関数

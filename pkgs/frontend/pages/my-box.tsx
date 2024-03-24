@@ -57,6 +57,7 @@ export default function MyBox() {
       globalContext.setLoading(true);
       // TODO call encrypt API from cryptree
       // TODO call ipfs API from cryptree
+      // call same API when upload file & creat folder
 
       // call insert method
       await insertTableData("test", "test");
@@ -99,6 +100,11 @@ export default function MyBox() {
       globalContext.setLoading(true);
       // TODO call encrypt API from cryptree
       // TODO call ipfs API from cryptree
+      // call same API when upload file & creat folder
+
+      // call insert method
+      await insertTableData("test", "test");
+
       toast.success(
         "CreateFolder Success!! Please wait a moment until it is reflected.",
         {
@@ -135,8 +141,6 @@ export default function MyBox() {
   const deleteFile = async (id: any) => {
     try {
       globalContext.setLoading(true);
-      // TODO call delete API from cryptree
-
       // call delate data method
       await deleteTableData(id);
       toast.success(
@@ -175,13 +179,14 @@ export default function MyBox() {
   const shareFile = async () => {
     try {
       globalContext.setLoading(true);
+      // TODO get key value by calling cryptree API
 
       console.log("to:", to);
       // get selectedId's table data
       const results: TableData[] = await getSelectedTableData(isSelectedId);
       console.log("results[0]:", results[0]);
       // call sendNotification method
-      await sendNotification(to, results[0].fileCid, results[0].rootId, "test");
+      await sendNotification(to, results[0].fileCid, "test", results[0].rootId);
 
       toast.success(
         "Share File Success!! Please wait a moment until it is reflected.",
@@ -221,6 +226,7 @@ export default function MyBox() {
       globalContext.setLoading(true);
       // TODO call reEncrypt API from cryptree
       // TODO call ipfs API from cryptree
+      // TODO call upate query
 
       toast.success(
         "reEncrypt File Success!! Please wait a moment until it is reflected.",
@@ -258,7 +264,8 @@ export default function MyBox() {
   const download = async () => {
     try {
       globalContext.setLoading(true);
-      // TODO call download API from cryptree
+      // TODO CID
+      // Fileオブジェクトをダウンロードする処理を入れる。
 
       toast.success(
         "download File Success!! Please wait a moment until it is reflected.",
@@ -295,12 +302,14 @@ export default function MyBox() {
     const init = async () => {
       globalContext.setLoading(true);
       try {
+        // TODO call signUp API from cryptree
         // init contract
         await createContract(walletClient);
         // get all table data
         const datas = await getAllTableData();
         console.log(datas);
         setTableDatas(datas);
+        // TODO call fetch API from cryptree
       } catch (err) {
         console.error("err", err);
       } finally {

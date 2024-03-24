@@ -112,6 +112,12 @@
   cd pkgs/backend && npx hardhat updateData --id 3 --rootid "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b977" --filecid "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b988" --network filecoinCalibration
   ```
 
+- task setAccessControl
+
+  ```bash
+  cd pkgs/backend && npx hardhat setAccessControl --network filecoinCalibration
+  ```
+
 ### Reference
 
 1. [FEVM Quickstart](https://docs.filecoin.io/smart-contracts/developing-contracts/hardhat)

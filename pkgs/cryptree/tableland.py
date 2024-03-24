@@ -58,6 +58,16 @@ class Tableland:
         return rows[0]["root_id"], rows[0]["root_key"]
 
     @classmethod
+    def get(cls, address: str):
+        statement = f"SELECT * FROM {cls.root_table_name} WHERE {cls.address_column} = '{address}';"
+        response = cls.execute_statement(statement)
+        rows = response.json()
+        if len(rows) == 0:
+            return None
+        user = rows[0]
+        return user
+
+    @classmethod
     def build_transaction(cls, contract, statement, nonce):
         transaction = contract.functions.mutate(
             cls.admin_account,

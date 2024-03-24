@@ -66,6 +66,10 @@ async def read_users_me(current_user: dict = Depends(get_current_user)):
 
 @router.post("/signup")
 async def signup(request: GenerateRootNodeRequest = Body(...)):
+    user = Tableland.get(request.owner_id);
+    if user:
+        raise HTTPException(status_code=400, detail="User already exists")
+
     message = encode_defunct(text=SECRET_MESSAGE)
     # 署名されたメッセージからアドレスを復元し、提供されたアドレスと比較
     recovered_address = w3.eth.account.recover_message(message, signature=request.signature)
@@ -132,6 +136,7 @@ async def create(request: CreateNodeRequest = Body(...), current_user: dict = De
         raise HTTPException(status_code=400, detail=str(e))
     return {
         "metadata": new_node.metadata,
+        "cid": new_node.cid,
         "subfolder_key": new_node.subfolder_key,
         "root_id": root_id,
     }
@@ -154,6 +159,8 @@ async def fetch(request: FetchNodeRequest = Body(...), current_user: dict = Depe
         enc_file_data = ipfs_client.cat(children[0].cid)
         file_data = CryptreeNode.decrypt(children[0].fk, enc_file_data).decode()
         response.file_data = file_data
+    elif len(children) > 0:
+        response.children = [CryptreeNode.get_node(child.cid, child.sk, ipfs_client) for child in children]
     return response
 
 @router.post("/re-encrypt")
@@ -166,7 +173,7 @@ async def re_encrypt(request: ReEncryptRequest = Body(...), current_user: dict =
     # Re-encrypt処理を実行
     new_node = target_node.re_encrypt_and_update(parent_node, ipfs_client)
 
-    root_id = current_user.root_id
+    root_id = current_user['root_id']
     new_root_id, _ = Tableland.get_root_info(current_user["address"])
     # 新しいルートIDになるまでループ
     while root_id == new_root_id:

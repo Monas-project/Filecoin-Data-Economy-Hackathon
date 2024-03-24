@@ -7,13 +7,13 @@
   "author": "Haruki Kondo",
   "license": "MIT",
   "scripts": {
-    "backend:build": "yarn workspace backend compile",
-    "backend:test": "yarn workspace backend test",
-    "backend:deploy:filecoinCalibration": "yarn workspace backend deploy:filecoinCalibration",
-    "frontend:build": "yarn workspace frontend build",
-    "frontend:dev": "yarn workspace frontend dev"
+    "backend": "yarn workspace backend",
+    "frontend": "yarn workspace frontend"
   },
   "workspaces": [
     "pkgs/*"
-  ]
+  ],
+  "dependencies": {
+    "@tableland/evm": "^5.0.0"
+  }
 }

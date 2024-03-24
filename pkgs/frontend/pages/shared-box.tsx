@@ -10,6 +10,7 @@ import {
     FolderAdd20Regular,
     Grid20Filled,
     Key20Regular,
+    MailInbox20Filled,
     MoreVertical16Regular,
     Share20Regular,
 } from "@fluentui/react-icons";
@@ -18,6 +19,8 @@ import { useState } from "react";
 export default function SharedBox() {
 
     const [isSelected, setIsSelected] = useState<boolean>(false);
+
+    const [isGetBoxModalOpen, setIsGetBoxModalOpen] = useState(false);
 
     const fileTableTr = [
         { th: "Name", width: 54 },
@@ -40,6 +43,9 @@ export default function SharedBox() {
                             <Button fotterVisible={true}>People</Button>
                             <Button fotterVisible={true}>Modified</Button>
                         </div>
+                        <div className="flex flex-row space-x-6">
+                                <Button onClick={() => setIsGetBoxModalOpen(true)} layout="neutral" headerVisible={true} headerIcon={<MailInbox20Filled />}>Get Box</Button>
+                            </div>
                     </div>
                 </div>
                 <div className="w-full grow flex flex-col px-8 py-6 space-y-8">
@@ -75,6 +81,27 @@ export default function SharedBox() {
                         </table>
                     </div>
                 </div>
+                {/* GetBox Button Dialog */}
+                {isGetBoxModalOpen && (
+                    <div onClick={(e) => e.target === e.currentTarget && setIsGetBoxModalOpen(false)}
+                        className="fixed top-0 left-0 right-0 bottom-0 bg-N0/60"
+                    >
+
+                        <div className="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 rounded-lg bg-N96 p-8 space-y-6">
+                            <div className="text-TitleLarge">Get Box</div>
+
+                            <Input id="uri" layout="outline" size="larger" label="URI" />
+                            
+                            <Input id="secretKey" layout="outline" size="larger" label="Secret Key" />
+
+                            <div className="w-full flex flex-row justify-between">
+                                <Button layout="neutral" size="large" onClick={() => setIsGetBoxModalOpen(false)}>Close</Button>
+                                <Button layout="primary" size="large" >Receive</Button>
+                            </div>
+                        </div>
+
+                    </div>
+                )}
             </div>
         </LayoutMain>
     );

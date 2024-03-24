@@ -13,11 +13,14 @@ export const GlobalProvider = ({
   children: React.ReactNode;
 }): JSX.Element => {
   const [loading, setLoading] = useState<boolean>(false);
+  const [accessToken, setAccessToken] = useState<string | undefined>(undefined);
 
   // 状態と関数をオブジェクトにラップして、プロバイダーに引き渡す
   const global = {
     loading,
     setLoading,
+    accessToken,
+    setAccessToken,
   };
 
   return (

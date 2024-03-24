@@ -1,23 +1,44 @@
 import Loading from "@/components/loading";
 import { GlobalContext } from "@/context/GlobalProvider";
 import { useEthersSigner } from "@/hooks/useEthersProvider";
+import { getEnv } from "@/utils/getEnv";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { useRouter } from "next/router";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import { filecoinCalibration } from "viem/chains";
-import { useAccount } from "wagmi";
+import { useAccount, useSignMessage } from "wagmi";
+import { ResponseData } from "./api/env";
 
 export default function Login() {
+  const [env, setEnv] = useState<ResponseData>();
   const account = useAccount();
   const router = useRouter();
   const signer = useEthersSigner({ chainId: filecoinCalibration.id });
   const globalContext = useContext(GlobalContext);
+  const { data: signMessageData, signMessageAsync } = useSignMessage();
+
+  /**
+   * authenticate
+   */
+  const authenticate = async () => {
+    try {
+      globalContext.setLoading(true);
+      // get .env values
+      const envData = await getEnv();
+
+      // signMessage
+      await signMessageAsync({ message: envData.SECRET_MESSAGE });
+    } catch (err) {
+      console.error("error:", err);
+    } finally {
+      globalContext.setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    if (account.address != undefined) {
-      router.push("/my-box");
-    }
-  }, [account]);
+    console.log("messeage:", signMessageData);
+    // router.push("/my-box");
+  }, [signMessageData]);
 
   return (
     <div className={`w-screen h-screen bg-HeroImage bg-cover text-N16`}>
@@ -70,7 +91,6 @@ export default function Login() {
                             return (
                               <button
                                 onClick={() => {
-                                  globalContext.setLoading(true);
                                   openConnectModal();
                                 }}
                                 type="button"
@@ -89,42 +109,8 @@ export default function Login() {
 
                           return (
                             <div style={{ display: "flex", gap: 12 }}>
-                              <button
-                                onClick={openChainModal}
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                }}
-                                type="button"
-                              >
-                                {chain.hasIcon && (
-                                  <div
-                                    style={{
-                                      background: chain.iconBackground,
-                                      width: 12,
-                                      height: 12,
-                                      borderRadius: 999,
-                                      overflow: "hidden",
-                                      marginRight: 4,
-                                    }}
-                                  >
-                                    {chain.iconUrl && (
-                                      <img
-                                        alt={chain.name ?? "Chain icon"}
-                                        src={chain.iconUrl}
-                                        style={{ width: 12, height: 12 }}
-                                      />
-                                    )}
-                                  </div>
-                                )}
-                                {chain.name}
-                              </button>
-
-                              <button onClick={openAccountModal} type="button">
-                                {account.displayName}
-                                {account.displayBalance
-                                  ? ` (${account.displayBalance})`
-                                  : ""}
+                              <button onClick={authenticate} type="button">
+                                signUp/login
                               </button>
                             </div>
                           );

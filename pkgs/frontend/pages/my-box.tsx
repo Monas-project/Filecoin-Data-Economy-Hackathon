@@ -30,7 +30,8 @@ import {
 import { useContext, useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useWalletClient } from "wagmi";
+import { useSignMessage, useWalletClient } from "wagmi";
+import { ResponseData } from "./api/env";
 
 const fileTableTr = [
   { th: "Name", width: 54 },
@@ -45,9 +46,11 @@ export default function MyBox() {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [tableDatas, setTableDatas] = useState<TableData[]>();
   const [to, setTo] = useState<any>();
+  const [env, setEnv] = useState<ResponseData>();
 
   const globalContext = useContext(GlobalContext);
   const { data: walletClient } = useWalletClient();
+  const { data: signMessageData, signMessageAsync } = useSignMessage();
 
   /**
    * uploadFile function
@@ -302,7 +305,6 @@ export default function MyBox() {
     const init = async () => {
       globalContext.setLoading(true);
       try {
-        // TODO call signUp API from cryptree
         // init contract
         await createContract(walletClient);
         // get all table data

@@ -22,15 +22,33 @@
     COINMARKETCAP_API_KEY=
     ```
 
+  - `cryptree`
+
+    create `.env` & set below values
+
+    ```txt
+    INFURA_BASE_URL="https://polygon-mumbai.infura.io/v3"
+    INFURA_PROJECT_ID="XXXXXXXXXXXXXXXX"
+    PRIVATE_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    TABLE_CONTRACT_ADDRESS="0x4b48841d4b32C4650E4ABc117A03FE8B51f38F68" # 一旦これで固定
+    SECRET_MESSAGE="Please sign this message to authenticate."
+    API_SECRET_KEY="your-secret-key"
+    ALGORITHM="HS256"
+    AWS_ACCESS_KEY_ID="XXXXXXXXXXXXXXXXXXXXX"
+    AWS_SECRET_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    ```
+
   - `frontend`
 
     create `.env.local` & set below values
 
     ```txt
     NEXT_PUBLIC_ENABLE_TESTNETS=
+    NEXT_PUBLIC_API_BASE_URL=
     WALLET_CONNECT_PROJECT_ID=
     SEPOLIA_RPC_URL=
     PUSH_PROTOCOL_PRIVATE_KEY=
+    SECRET_MESSAGE="Please sign this message to authenticate."
     ```
 
 - install

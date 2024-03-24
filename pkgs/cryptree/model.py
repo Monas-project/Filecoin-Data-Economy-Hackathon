@@ -50,6 +50,7 @@ class FetchNodeResponse(BaseModel):
     subfolder_key: str
     root_id: str
     file_data: Optional[str] = None # ファイルの場合のみ含まれる
+    children: List[CryptreeNodeModel] = []
 
 
 class ReEncryptRequest(BaseModel):

@@ -57,11 +57,13 @@
   yarn
   ```
 
+  **!! Attention !!** Please set Python's version 3.9
+
   ```bash
   cd pkgs/cryptree
   python3 -m venv cryptree
   source cryptree/bin/activate
-  pip install -r requirements.txt
+  pip3 install -r requirements.txt
   ```
 
 - frontend build

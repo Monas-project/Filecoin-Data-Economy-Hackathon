@@ -53,8 +53,15 @@
 
 - install
 
-  ```Bash
+  ```bash
   yarn
+  ```
+
+  ```bash
+  cd pkgs/cryptree
+  python3 -m venv cryptree
+  source cryptree/bin/activate
+  pip install -r requirements.txt
   ```
 
 - frontend build

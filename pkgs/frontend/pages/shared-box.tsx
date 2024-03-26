@@ -90,7 +90,6 @@ export default function SharedBox() {
                             <div className="text-TitleLarge">Get Box</div>
 
                             <Input id="uri" layout="outline" size="larger" label="URI" />
-
                             <Input id="secretKey" layout="outline" size="larger" label="Secret Key" />
 
                             <div className="w-full flex flex-row justify-between">

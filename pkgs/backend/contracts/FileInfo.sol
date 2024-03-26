@@ -18,24 +18,30 @@ contract FileInfo is TablelandController, ERC721Holder {
   string private tableName;
   string private constant _TABLE_PREFIX = "fileinfo_table";
   bytes32 private rootHash;
+  address owner;
 
   /// events
 
-  event TableCreated(uint256 tableId, string tableName);
+  event TableCreated(uint256 tableId, string tableName, address owner);
   event Insert(
     uint256 tableId,
     string tableName,
-    string fileHash,
+    string rootId,
     string fileCid
   );
   event Update(
     uint256 tableId,
     string tableName,
-    string fileHash,
+    string rootId,
     string fileCid
   );
   event Delete(uint256 tableId, string tableName);
   event UpdateRootHash(bytes32 rootHash);
+
+  modifier onlyOwner() {
+    require(msg.sender == owner, "msg.sender must be owner");
+    _;
+  }
 
   /**
    * constructor
@@ -46,21 +52,23 @@ contract FileInfo is TablelandController, ERC721Holder {
       address(this),
       SQLHelpers.toCreateFromSchema(
         "id integer primary key,"
-        "fileHash text,"
+        "rootId text,"
         "fileCid text",
         _TABLE_PREFIX
       )
     );
     tableName = SQLHelpers.toNameFromId(_TABLE_PREFIX, tableId);
+    // set owner
+    owner = msg.sender;
     // emit
-    emit TableCreated(tableId, tableName);
+    emit TableCreated(tableId, tableName, msg.sender);
   }
 
   /**
    * Insert a row into the table from an external call
    */
   function insertFileInfo(
-    string memory _fileHash,
+    string memory _rootId,
     string memory _fileCid
   ) external {
     TablelandDeployments.get().mutate(
@@ -69,15 +77,15 @@ contract FileInfo is TablelandController, ERC721Holder {
       SQLHelpers.toInsert(
         _TABLE_PREFIX,
         tableId,
-        "fileHash, fileCid",
+        "rootId, fileCid",
         string.concat(
-          SQLHelpers.quote(_fileHash),
+          SQLHelpers.quote(_rootId),
           ",",
           SQLHelpers.quote(_fileCid)
         )
       )
     );
-    emit Insert(tableId, tableName, _fileHash, _fileCid);
+    emit Insert(tableId, tableName, _rootId, _fileCid);
   }
 
   /**
@@ -85,12 +93,12 @@ contract FileInfo is TablelandController, ERC721Holder {
    */
   function updateFileInfo(
     uint64 id,
-    string memory _fileHash,
+    string memory _rootId,
     string memory _fileCid
   ) external {
     string memory setters = string.concat(
-      "fileHash=",
-      SQLHelpers.quote(_fileHash),
+      "rootId=",
+      SQLHelpers.quote(_rootId),
       ",",
       "fileCid=",
       SQLHelpers.quote(_fileCid)
@@ -102,7 +110,7 @@ contract FileInfo is TablelandController, ERC721Holder {
       tableId,
       SQLHelpers.toUpdate(_TABLE_PREFIX, tableId, setters, filters)
     );
-    emit Update(tableId, tableName, _fileHash, _fileCid);
+    emit Update(tableId, tableName, _rootId, _fileCid);
   }
 
   /**
@@ -129,7 +137,7 @@ contract FileInfo is TablelandController, ERC721Holder {
   ) public payable override returns (TablelandPolicy memory) {
     // Restrict updates to a single column, e.g., `val`
     string[] memory updatableColumns = new string[](2);
-    updatableColumns[0] = "fileHash";
+    updatableColumns[0] = "rootId";
     updatableColumns[1] = "fileCid";
     // Return the policy
     return
@@ -154,7 +162,7 @@ contract FileInfo is TablelandController, ERC721Holder {
   /**
    * set ACL function
    */
-  function setAccessControl() public {
+  function setAccessControl() public onlyOwner {
     TablelandDeployments.get().setController(
       address(this),
       tableId,

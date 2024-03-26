@@ -4,7 +4,7 @@ import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { loadDeployedContractAddresses } from "../../helper/contractsJsonHelper";
 
 task("insertData", "insert data")
-  .addParam("filehash", "fileHash")
+  .addParam("rootid", "rootid")
   .addParam("filecid", "fileCid")
   .setAction(async (taskArgs: any, hre: HardhatRuntimeEnvironment) => {
     // get Contract Address
@@ -17,7 +17,7 @@ task("insertData", "insert data")
     try {
       // insert
       const tx = await fileInfo.insertFileInfo(
-        taskArgs.filehash,
+        taskArgs.rootid,
         taskArgs.filecid
       );
       console.log("tx hash:", tx.hash);

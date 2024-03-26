@@ -14,7 +14,6 @@
     "deploy": "hardhat run scripts/deploy.ts --network",
     "deploy:up": "hardhat run scripts/deploy.ts --network localhost",
     "deploy:local": "hardhat run scripts/deploy.ts --network local-tableland",
-    "deploy:mock:filecoinCalibration": "hardhat run scripts/mock/deploy.ts --network filecoinCalibration",
     "deploy:filecoinCalibration": "hardhat run scripts/deploy.ts --network filecoinCalibration",
     "test": "hardhat coverage && istanbul check-coverage ./coverage.json --statements 100 --branches 95 --functions 100 --lines 100",
     "test:gas": "REPORT_GAS=true hardhat test",
@@ -24,7 +23,8 @@
     "lint:fix": "npm run lint:ts -- --fix && npm run lint:sol -- --fix",
     "prettier": "prettier '**/*.{js,ts,json,sol,md}' --check",
     "prettier:fix": "npm run prettier -- --write",
-    "format": "npm run prettier:fix && npm run lint:fix"
+    "format": "npm run prettier:fix && npm run lint:fix",
+    "cp": "cp -r artifacts ../frontend/contracts"
   },
   "keywords": [
     "tableland",

@@ -6,13 +6,9 @@ import LayoutMain from "@/components/layouts/Layout/LayoutMain";
 import {
     ArrowDownload20Regular,
     Delete20Regular,
-    DocumentArrowUp20Regular,
-    FolderAdd20Regular,
     Grid20Filled,
-    Key20Regular,
     MailInbox20Filled,
     MoreVertical16Regular,
-    Share20Regular,
 } from "@fluentui/react-icons";
 import { useState } from "react";
 

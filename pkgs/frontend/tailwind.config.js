@@ -29,7 +29,7 @@ module.exports = {
         }],
 
         'TitleLarge': ['1.375rem', {
-          lineHeight: '1.4875rem',
+          lineHeight: '1.5rem',
           letterSpacing: '0.07px',
           fontWeight: '400',
         }],

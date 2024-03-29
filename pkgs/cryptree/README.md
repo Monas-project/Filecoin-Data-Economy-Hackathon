@@ -2,7 +2,7 @@
 
 ## local 環境で実行
 
-- `ipfs deamon` を片方のターミナルで実行
+- `ipfs daemon` を片方のターミナルで実行
 
 - もう片方のターミナルで `uvicorn main:app --reload`
 

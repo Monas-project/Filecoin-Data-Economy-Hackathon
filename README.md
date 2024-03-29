@@ -4,6 +4,10 @@
 
 [0x69d3E7219CE2259654EcBBFf9597936BaDF5Be52](https://sepolia.etherscan.io/address/0x69d3E7219CE2259654EcBBFf9597936BaDF5Be52)
 
+## Deployed TableLand Contract(FileCoin Testnet)
+
+[0x0d5D749BEbB9521c9604727aB22091a924b4aDd4](https://calibration.filfox.info/en/address/0x0d5D749BEbB9521c9604727aB22091a924b4aDd4)
+
 ## How to work
 
 - setup
@@ -18,21 +22,48 @@
     COINMARKETCAP_API_KEY=
     ```
 
+  - `cryptree`
+
+    create `.env` & set below values
+
+    ```txt
+    INFURA_BASE_URL="https://polygon-mumbai.infura.io/v3"
+    INFURA_PROJECT_ID="XXXXXXXXXXXXXXXX"
+    PRIVATE_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    TABLE_CONTRACT_ADDRESS="0x4b48841d4b32C4650E4ABc117A03FE8B51f38F68" # 一旦これで固定
+    SECRET_MESSAGE="Please sign this message to authenticate."
+    API_SECRET_KEY="your-secret-key"
+    ALGORITHM="HS256"
+    AWS_ACCESS_KEY_ID="XXXXXXXXXXXXXXXXXXXXX"
+    AWS_SECRET_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+    ```
+
   - `frontend`
 
     create `.env.local` & set below values
 
     ```txt
     NEXT_PUBLIC_ENABLE_TESTNETS=
+    NEXT_PUBLIC_API_BASE_URL=
     WALLET_CONNECT_PROJECT_ID=
     SEPOLIA_RPC_URL=
     PUSH_PROTOCOL_PRIVATE_KEY=
+    SECRET_MESSAGE="Please sign this message to authenticate."
     ```
 
 - install
 
-  ```Bash
+  ```bash
   yarn
+  ```
+
+  **!! Attention !!** Please set Python's version 3.9
+
+  ```bash
+  cd pkgs/cryptree
+  python3 -m venv cryptree
+  source cryptree/bin/activate
+  pip3 install -r requirements.txt
   ```
 
 - frontend build
@@ -106,6 +137,12 @@
 
   ```bash
   cd pkgs/backend && npx hardhat updateData --id 3 --rootid "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b977" --filecid "0x2cfb66d732c42332174297788fb69fba6c4bef842d95205ebfde1a126997b988" --network filecoinCalibration
+  ```
+
+- task setAccessControl
+
+  ```bash
+  cd pkgs/backend && npx hardhat setAccessControl --network filecoinCalibration
   ```
 
 ### Reference

@@ -2,7 +2,7 @@ import { getEnv } from "@/utils/getEnv";
 import { ListInfo } from "@/utils/type";
 import { PushAPI } from "@pushprotocol/restapi";
 import { ENV } from "@pushprotocol/restapi/src/lib/constants";
-import { Signer, ethers } from "ethers";
+import { ethers } from "ethers";
 
 /**
  * createSigner for PushProtocol
@@ -20,8 +20,9 @@ const createSignerForPushProtocol = async () => {
 
 /**
  * init PushSDK
+ * @param signer pushprotocol's signer
  */
-const initPushSDK = async (signer: Signer) => {
+const initPushSDK = async (signer: any) => {
   const pushUser = await PushAPI.initialize(signer, {
     env: ENV.STAGING,
   });
@@ -30,6 +31,7 @@ const initPushSDK = async (signer: Signer) => {
 
 /**
  * get PushInfo
+ * @param signer connected account's signer
  */
 export const getPushInfo = async (signer: any) => {
   // init PushSDK
@@ -46,8 +48,10 @@ export const getPushInfo = async (signer: any) => {
   // console.log("channelInfo:", channelInfo);
 
   // get notification info
-  const listInfo: ListInfo[] = await pushUser.notification.list("INBOX");
+  const listInfo: ListInfo[] = await pushUser.notification.list("SPAM");
   console.log("listInfo:", listInfo);
+  const listInfo2: ListInfo[] = await pushUser.notification.list("INBOX");
+  console.log("listInfo2:", listInfo2);
 
   return listInfo;
 };
@@ -55,26 +59,28 @@ export const getPushInfo = async (signer: any) => {
 /**
  * send Notification
  */
-export const sendNotification = async () => {
+export const sendNotification = async (
+  to: string,
+  cid: any,
+  key: any,
+  fileInfo: any
+) => {
   // init PushSDK
   const signer = await createSignerForPushProtocol();
   const pushUser = await initPushSDK(signer);
   // send notification
-  const sendNotifRes = await pushUser.channel.send(
-    ["0x69d3E7219CE2259654EcBBFf9597936BaDF5Be52"],
-    {
-      notification: {
-        title: "This is a test Notification",
-        body: `
+  const sendNotifRes = await pushUser.channel.send([to], {
+    notification: {
+      title: "This is a test Notification",
+      body: `
           This is a test Notification!!!!!!
 
-          CID: aaaaaa
-          Key: bbbbbb
-          FileInfo: cccccc
+          CID: ${cid}
+          Key: ${key}
+          FileInfo: ${fileInfo}
           
         `,
-      },
-    }
-  );
+    },
+  });
   console.log("sendNotifRes:", { sendNotifRes });
 };

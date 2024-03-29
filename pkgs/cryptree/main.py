@@ -10,7 +10,7 @@ from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest, 
 import os
 from dotenv import load_dotenv
 from fake_ipfs import FakeIPFS
-import ipfshttpclient
+from ipfs_client import IpfsClient
 
 # .envファイルの内容を読み込見込む
 load_dotenv()
@@ -19,10 +19,7 @@ load_dotenv()
 ipfs_host = os.getenv("IPFS_HOST", "localhost")
 ipfs_port = os.getenv("IPFS_PORT", "5001")
 if os.environ.get('TEST_ENV') != 'True':
-    if os.environ.get('TEST_ENV') == 'development':
-        ipfs_client = ipfshttpclient.connect(f'/dns/{ipfs_host}/tcp/{ipfs_port}/http', timeout=180)
-    else:
-        ipfs_client = ipfshttpclient.connect('localhost', 5001)
+    ipfs_client = IpfsClient(f'/dns/{ipfs_host}/tcp/{ipfs_port}/http')
 else:
     ipfs_client = FakeIPFS()  # テスト用の偽のIPFSクライアント
 

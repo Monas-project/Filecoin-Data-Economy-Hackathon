@@ -1,13 +1,13 @@
 from pydantic import Field
-from typing import Optional
+from typing import Optional, Type
 import json
 from datetime import datetime
 from cryptography.fernet import Fernet
-from ipfshttpclient import Client
 from model import Metadata, ChildNodeInfo, CryptreeNodeModel
 from tableland import Tableland
 import base64
 from kms import Kms
+from ipfs_client import IpfsClient
 
 class CryptreeNode(CryptreeNodeModel):
     metadata: Metadata = Field(..., alias="metadata")
@@ -24,7 +24,7 @@ class CryptreeNode(CryptreeNodeModel):
 
     # ノードを作成する
     @classmethod
-    def create_node(cls, name: str, owner_id: str, isDirectory: bool, ipfs_client: Client, parent: Optional['CryptreeNode'] = None, file_data: Optional[str] = None) -> 'CryptreeNode':
+    def create_node(cls, name: str, owner_id: str, isDirectory: bool, ipfs_client: Type[IpfsClient], parent: Optional['CryptreeNode'] = None, file_data: Optional[str] = None) -> 'CryptreeNode':
         # キー生成
         if parent is None:
             kms_client = Kms()
@@ -79,7 +79,7 @@ class CryptreeNode(CryptreeNodeModel):
         return CryptreeNode.encrypt(self.subfolder_key, self.metadata.model_dump_json().encode())
 
     @classmethod
-    def update_all_nodes(cls, address: str, new_cid: str, target_subfolder_key: str, ipfs_client: Client):
+    def update_all_nodes(cls, address: str, new_cid: str, target_subfolder_key: str, ipfs_client: Type[IpfsClient]):
         # ルートノードのから下の階層に降りながら、該当のサブフォルダキーを持つノードを探し、新しいCIDに更新する
         root_id, root_key = Tableland.get_root_info(address)
         root_node = cls.get_node(root_id, root_key, ipfs_client)
@@ -95,7 +95,7 @@ class CryptreeNode(CryptreeNodeModel):
             cls.update_node(root_node, address, target_subfolder_key, new_cid, ipfs_client, update_root_callback)
 
     @classmethod
-    def update_node(cls, node: 'CryptreeNode', address: str, target_subfolder_key: str, new_cid: str, ipfs_client: Client, callback):
+    def update_node(cls, node: 'CryptreeNode', address: str, target_subfolder_key: str, new_cid: str, ipfs_client: Type[IpfsClient], callback):
         children = node.metadata.children
         for index, child in enumerate(children):
             # fileだった場合はスキップ
@@ -119,7 +119,7 @@ class CryptreeNode(CryptreeNodeModel):
                     cls.update_node(child_node, address, target_subfolder_key, new_cid, ipfs_client, update_all_again_callback)
 
     @classmethod
-    def get_node(cls, cid: str, sk: str, ipfs_client: Client) -> 'CryptreeNode':
+    def get_node(cls, cid: str, sk: str, ipfs_client: Type[IpfsClient]) -> 'CryptreeNode':
         enc_metadata = ipfs_client.cat(cid)
         metadata_str = CryptreeNode.decrypt(sk, enc_metadata).decode()
         metadata = json.loads(metadata_str)
@@ -146,7 +146,7 @@ class CryptreeNode(CryptreeNodeModel):
             response = kms_client.decrypt(key, data)
             return response['Plaintext']
 
-    def re_encrypt_and_update(self, parent_node: 'CryptreeNode', ipfs_client: Client) -> 'CryptreeNode':
+    def re_encrypt_and_update(self, parent_node: 'CryptreeNode', ipfs_client: Type[IpfsClient]) -> 'CryptreeNode':
         # 指定したノードの更新前のsubfolder_keyを保持
         old_subfolder_key = self.subfolder_key
 
@@ -167,7 +167,7 @@ class CryptreeNode(CryptreeNodeModel):
 
         return self
 
-    def re_encrypt(self, ipfs_client: Client) -> 'CryptreeNode':
+    def re_encrypt(self, ipfs_client: Type[IpfsClient]) -> 'CryptreeNode':
         if self.is_leaf:
             self.subfolder_key = Fernet.generate_key().decode()
             enc_metadata = self.encrypt_metadata()

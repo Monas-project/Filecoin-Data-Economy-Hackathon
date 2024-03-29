@@ -10,14 +10,14 @@ from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest, 
 import os
 from dotenv import load_dotenv
 from fake_ipfs import FakeIPFS
-import ipfshttpclient
+from ipfs_client import IpfsClient
 
 # .envファイルの内容を読み込見込む
 load_dotenv()
 
 # 例: 環境変数 'TEST_ENV' が 'True' の場合にのみ実際の接続を行う
 if os.environ.get('TEST_ENV') != 'True':
-    ipfs_client = ipfshttpclient.connect()
+    ipfs_client = IpfsClient()
 else:
     ipfs_client = FakeIPFS()  # テスト用の偽のIPFSクライアント
 

@@ -19,6 +19,6 @@ COPY check_ipfs.sh /usr/local/bin/check_ipfs.sh
 RUN chmod +x /usr/local/bin/check_ipfs.sh
 
 # アプリケーションを実行
-CMD ["/bin/sh", "-c", "/usr/local/bin/check_ipfs.sh && uvicorn main:app --host 0.0.0.0 --port 80 --log-level debug"]
+CMD ["/bin/sh", "-c", "/usr/local/bin/check_ipfs.sh && uvicorn main:app --reload --host 0.0.0.0 --port 80"]
 
 

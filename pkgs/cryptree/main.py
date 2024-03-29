@@ -18,8 +18,8 @@ load_dotenv()
 # 例: 環境変数 'TEST_ENV' が 'True' の場合にのみ実際の接続を行う
 ipfs_host = os.getenv("IPFS_HOST", "localhost")
 ipfs_port = os.getenv("IPFS_PORT", "5001")
-if os.environ.get('TEST_ENV') != 'True':
-    ipfs_client = IpfsClient(f'/dns/{ipfs_host}/tcp/{ipfs_port}/http')
+if os.environ.get('TEST_ENV') == 'development':
+    ipfs_client = IpfsClient(f'http://{ipfs_host}:{ipfs_port}')
 else:
     ipfs_client = FakeIPFS()  # テスト用の偽のIPFSクライアント
 

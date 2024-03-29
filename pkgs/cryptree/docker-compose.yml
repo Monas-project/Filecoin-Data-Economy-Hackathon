@@ -1,0 +1,22 @@
+version: "3.8"
+services:
+  app:
+    build: ./docker
+    ports:
+      - "8000:80"
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    depends_on:
+      - ipfs
+  ipfs:
+    image: ipfs/kubo
+    ports:
+      - "4001:4001" # IPFSノード通信用
+      - "5001:5001" # IPFS API用
+      - "8080:8080" # HTTPゲートウェイ用
+    volumes:
+      - "./ipfs/staging:/export" # ステージングエリア用
+      - "./ipfs/data:/data/ipfs" # IPFSデータ用
+    command: ["daemon", "--migrate=true"] # データベースが古い場合は自動的にマイグレーションを行う

@@ -61,8 +61,10 @@ export default function GetBox() {
               <div className="px-8 py-6">
                 <table className="w-full">
                   <tbody className="space-y-4">
-                    <tr className="overflow-hidden w-full rounded-lg flex flex-col bg-N96 border border-N42
-                                    [&>td]:flex [&>td]:px-2.5 [&>td]:py-3.5">
+                    <tr
+                      className="overflow-hidden w-full rounded-lg flex flex-col bg-N96 border border-N42
+                                    [&>td]:flex [&>td]:px-2.5 [&>td]:py-3.5"
+                    >
                       {pushList.length != 0 && (
                         <>
                           {pushList.map((push, i) => (

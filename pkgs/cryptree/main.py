@@ -1,16 +1,18 @@
 from fastapi import Depends, APIRouter, FastAPI, HTTPException, status, Body, Form
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.middleware.cors import CORSMiddleware
 from crypt_tree_node import CryptreeNode
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from web3 import Web3
 from eth_account.messages import encode_defunct
 from tableland import Tableland
-from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest, FetchNodeResponse, ReEncryptRequest
+from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest, FetchNodeResponse, ReEncryptRequest, LoginRequest
 import os
 from dotenv import load_dotenv
 from fake_ipfs import FakeIPFS
 from ipfs_client import IpfsClient
+
 
 # .envファイルの内容を読み込見込む
 load_dotenv()
@@ -34,6 +36,14 @@ SECRET_MESSAGE = os.environ['SECRET_MESSAGE']
 
 # トークンの受け取り先URLを指定してOAuth2PasswordBearerインスタンスを作成
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # http://localhost:3000 のみを許可
+    allow_credentials=True,
+    allow_methods=["*"],  # すべてのHTTPメソッドを許可
+    allow_headers=["*"],  # すべてのHTTPヘッダーを許可
+)
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -66,8 +76,19 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 async def read_users_me(current_user: dict = Depends(get_current_user)):
     return current_user
 
+@router.post("/user/exists")
+async def user_exists(request: LoginRequest = Body(...)):
+    message = encode_defunct(text=SECRET_MESSAGE)
+    # 署名されたメッセージからアドレスを復元し、提供されたアドレスと比較
+    recovered_address = w3.eth.account.recover_message(message, signature=request.signature)
+    if recovered_address.lower() == request.owner_id.lower():
+        user = Tableland.get(request.address)
+        return {"exists": user is not None}
+
 @router.post("/signup")
 async def signup(request: GenerateRootNodeRequest = Body(...)):
+    print('request:')
+    print(request)
     user = Tableland.get(request.owner_id);
     if user:
         raise HTTPException(status_code=400, detail="User already exists")
@@ -99,8 +120,10 @@ async def signup(request: GenerateRootNodeRequest = Body(...)):
         raise HTTPException(status_code=401, detail="Invalid signature or address")
 
 @router.post("/login")
-async def login(signature: str = Body(...), address: str = Body(...)):
+async def login(request: LoginRequest = Body(...)):
     message = encode_defunct(text=SECRET_MESSAGE)
+    address = request.address
+    signature = request.signature
     # 署名されたメッセージからアドレスを復元し、提供されたアドレスと比較
     recovered_address = w3.eth.account.recover_message(message, signature=signature)
     if recovered_address.lower() == address.lower():
@@ -115,11 +138,11 @@ async def login(signature: str = Body(...), address: str = Body(...)):
         return {
             "root_node": {
                 "metadata": node.metadata,
-                "subfolder_key": node.subfolder_key
+                "subfolder_key": node.subfolder_key,
+                "root_id": node.cid,
             },
             "access_token": access_token,
             "token_type": "bearer",
-            "root_id": root_id,
         }
     else:
         raise HTTPException(status_code=401, detail="Invalid signature or address")

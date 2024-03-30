@@ -8,6 +8,9 @@ import { useContext, useEffect, useState } from "react";
 import { filecoinCalibration } from "viem/chains";
 import { useAccount, useSignMessage } from "wagmi";
 import { ResponseData } from "./api/env";
+import { useSignUp } from "@/hooks/cryptree/useSignUp";
+import { useLogin } from "@/hooks/cryptree/useLogin";
+import { useUserExists } from "@/hooks/cryptree/useUserExists";
 
 export default function Login() {
   const [env, setEnv] = useState<ResponseData>();
@@ -16,6 +19,21 @@ export default function Login() {
   const signer = useEthersSigner({ chainId: filecoinCalibration.id });
   const globalContext = useContext(GlobalContext);
   const { data: signMessageData, signMessageAsync } = useSignMessage();
+  const {
+    signUp,
+    data: signUpData,
+    error: signUpError,
+  } = useSignUp(account?.address!, signMessageData!);
+  const {
+    login,
+    data: loginData,
+    error: loginError,
+  } = useLogin(account?.address!, signMessageData!);
+  const {
+    data: userExistsData,
+    userExists,
+    error: userExistsError,
+  } = useUserExists(account?.address!, signMessageData!);
 
   /**
    * authenticate
@@ -36,8 +54,33 @@ export default function Login() {
   };
 
   useEffect(() => {
-    console.log("messeage:", signMessageData);
-    // router.push("/my-box");
+    const handleAuth = async () => {
+      await userExists();
+      if (userExistsError) {
+        console.error("userExistsError:", userExistsError);
+        return;
+      }
+
+      if (userExistsData && userExistsData.exists) {
+        console.log("userExistsData:", userExistsData);
+        await login();
+        if (loginError) {
+          console.error("loginError:", loginError);
+          return;
+        }
+
+        router.push("/my-box");
+      } else {
+        await signUp();
+        if (signUpError) {
+          console.error("signUpError:", signUpError);
+          return;
+        }
+
+        router.push("/my-box");
+      }
+    };
+    handleAuth();
   }, [signMessageData]);
 
   return (

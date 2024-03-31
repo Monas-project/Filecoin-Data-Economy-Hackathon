@@ -81,7 +81,7 @@ async def user_exists(request: LoginRequest = Body(...)):
     message = encode_defunct(text=SECRET_MESSAGE)
     # 署名されたメッセージからアドレスを復元し、提供されたアドレスと比較
     recovered_address = w3.eth.account.recover_message(message, signature=request.signature)
-    if recovered_address.lower() == request.owner_id.lower():
+    if recovered_address.lower() == request.address.lower():
         user = Tableland.get(request.address)
         return {"exists": user is not None}
 

@@ -68,20 +68,24 @@ export default function Login() {
           console.error("loginError:", loginError);
           return;
         }
-
-        router.push("/my-box");
+        if (loginData) {
+          console.log("loginData:", loginData);
+          router.push("/my-box");
+        }
       } else {
         await signUp();
         if (signUpError) {
           console.error("signUpError:", signUpError);
           return;
         }
-
-        router.push("/my-box");
+        if (signUpData) {
+          console.log("signUpData:", signUpData);
+          router.push("/my-box");
+        }
       }
     };
     handleAuth();
-  }, [signMessageData]);
+  }, [signMessageData, userExistsData.exists]);
 
   return (
     <div className={`w-screen h-screen bg-HeroImage bg-cover text-N16`}>

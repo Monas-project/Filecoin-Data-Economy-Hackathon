@@ -30,8 +30,12 @@ import {
 import { useContext, useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useSignMessage, useWalletClient } from "wagmi";
+import { useAccount, useSignMessage, useWalletClient } from "wagmi";
 import { ResponseData } from "./api/env";
+import { useGetNode } from "@/hooks/cryptree/useGetNode";
+import { root } from "postcss";
+import { useUserExists } from "@/hooks/cryptree/useUserExists";
+import { useRouter } from "next/router";
 
 const fileTableTr = [
   { th: "Name", width: 54 },
@@ -47,10 +51,26 @@ export default function MyBox() {
   const [tableDatas, setTableDatas] = useState<TableData[]>();
   const [to, setTo] = useState<any>();
   const [env, setEnv] = useState<ResponseData>();
+  const router = useRouter();
 
   const globalContext = useContext(GlobalContext);
   const { data: walletClient } = useWalletClient();
+  const { address, isConnected } = useAccount();
+  console.log("account:", address);
+  console.log("isConnected:", isConnected);
   const { data: signMessageData, signMessageAsync } = useSignMessage();
+  const { rootId, rootKey } = globalContext;
+  const {
+    data: getNodeData,
+    getNode,
+    error: getNodeError,
+  } = useGetNode(address!, rootId!, rootKey!);
+
+  const {
+    userExists,
+    data: userExistsData,
+    error: userExistsError,
+  } = useUserExists(walletClient?.account?.address!, signMessageData!);
 
   /**
    * uploadFile function
@@ -305,11 +325,25 @@ export default function MyBox() {
     const init = async () => {
       globalContext.setLoading(true);
       try {
+        await userExists();
+        // if (isConnected || !userExistsData.exists) {
+        //   router.push("/");
+        //   return;
+        // }
         // init contract
         await createContract(walletClient);
         // get all table data
-        const datas = await getAllTableData();
-        console.log(datas);
+
+        // if (userExistsData && !userExistsData.exists) {
+        //   router.push("/");
+        //   return;
+        // }
+        await getNode();
+        const tableData = await getAllTableData();
+        console.log("getNodeData:", getNodeData);
+        const metadata = getNodeData?.metadata;
+        const children = getNodeData?.children;
+        const datas = children;
         setTableDatas(datas);
         // TODO call fetch API from cryptree
       } catch (err) {
@@ -319,7 +353,7 @@ export default function MyBox() {
       }
     };
     init();
-  }, []);
+  }, [rootId, getNodeData, userExistsData.exists, isConnected]);
 
   return (
     <LayoutMain>
@@ -388,7 +422,7 @@ export default function MyBox() {
                     </tr>
                   </thead>
                   <tbody className="flex flex-col w-full last:[&>tr]:border-none">
-                    {tableDatas?.map((data: TableData, i) => (
+                    {tableDatas?.map((data: any, i) => (
                       <tr
                         key={i}
                         onClick={() => {
@@ -409,6 +443,7 @@ export default function MyBox() {
                         >
                           <DocumentIcon />
                           <div>Document01</div>
+                          <div>{data.cid}</div>
                         </td>
                         <td style={{ width: `${fileTableTr[1].width}%` }}>
                           0x123...576

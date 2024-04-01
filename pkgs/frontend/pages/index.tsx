@@ -40,11 +40,7 @@ export default function Login() {
   useEffect(() => {
     console.log("signMessageData:", signMessageData);
     if (signMessageData) {
-      if (signUpData) {
-        console.log("signUpData:", signUpData);
-        router.push("/my-box");
-      } else if (loginData) {
-        console.log("loginData:", loginData);
+      if (signUpData || loginData) {
         router.push("/my-box");
       }
     }

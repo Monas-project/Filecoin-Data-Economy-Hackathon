@@ -64,7 +64,7 @@ export default function MyBox() {
     data: getNodeData,
     getNode,
     error: getNodeError,
-  } = useGetNode(address!, rootId!, rootKey!);
+  } = useGetNode(address!, rootKey!, rootId!);
 
   const {
     userExists,
@@ -124,7 +124,6 @@ export default function MyBox() {
       // TODO call encrypt API from cryptree
       // TODO call ipfs API from cryptree
       // call same API when upload file & creat folder
-
       // call insert method
       await insertTableData("test", "test");
 
@@ -323,21 +322,16 @@ export default function MyBox() {
   useEffect(() => {
     globalContext.setLoading(false);
     const init = async () => {
+      if (!isConnected && !address) {
+        router.push("/");
+        return;
+      }
       globalContext.setLoading(true);
       try {
-        await userExists();
-        // if (isConnected || !userExistsData.exists) {
-        //   router.push("/");
-        //   return;
-        // }
         // init contract
         await createContract(walletClient);
         // get all table data
 
-        // if (userExistsData && !userExistsData.exists) {
-        //   router.push("/");
-        //   return;
-        // }
         await getNode();
         const tableData = await getAllTableData();
         console.log("getNodeData:", getNodeData);
@@ -353,7 +347,7 @@ export default function MyBox() {
       }
     };
     init();
-  }, [rootId, getNodeData, userExistsData.exists, isConnected]);
+  }, [rootId, isConnected]);
 
   return (
     <LayoutMain>
@@ -401,6 +395,7 @@ export default function MyBox() {
             <div className="w-full grow flex flex-col px-8 py-6 space-y-8">
               <div className="w-full space-y-4">
                 <div className="text-TitleMedium">Recent Files</div>
+                <div>{JSON.stringify(getNodeData)}</div>
                 <div className="flex flex-row px-8 space-x-4">
                   <CompoundButton
                     headerIcon={<FolderIcon />}
@@ -442,7 +437,7 @@ export default function MyBox() {
                           className="flex flex-row items-center space-x-6"
                         >
                           <DocumentIcon />
-                          <div>Document01</div>
+                          <div>{getNodeData?.children[0].name}</div>
                           <div>{data.cid}</div>
                         </td>
                         <td style={{ width: `${fileTableTr[1].width}%` }}>

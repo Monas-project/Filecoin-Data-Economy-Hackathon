@@ -38,11 +38,14 @@ export const useUserExists = (
 
       const data = await res.json();
 
+      console.log("data:", data);
+
       if (!res.ok) {
         throw new Error("Failed to signup");
       }
 
       setData(data);
+      // return data;
     } catch (err) {
       console.error("err:", err);
       setError(
@@ -52,6 +55,11 @@ export const useUserExists = (
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    console.log("useEffect: useUserExists");
+    userExists();
+  }, [address, signature]);
 
   return { userExists, data, loading, error };
 };

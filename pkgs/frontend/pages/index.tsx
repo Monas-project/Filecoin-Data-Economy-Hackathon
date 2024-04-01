@@ -10,7 +10,6 @@ import { useAccount, useSignMessage } from "wagmi";
 import { ResponseData } from "./api/env";
 import { useSignUp } from "@/hooks/cryptree/useSignUp";
 import { useLogin } from "@/hooks/cryptree/useLogin";
-import { useUserExists } from "@/hooks/cryptree/useUserExists";
 
 export default function Login() {
   const [env, setEnv] = useState<ResponseData>();
@@ -19,21 +18,8 @@ export default function Login() {
   const signer = useEthersSigner({ chainId: filecoinCalibration.id });
   const globalContext = useContext(GlobalContext);
   const { data: signMessageData, signMessageAsync } = useSignMessage();
-  const {
-    signUp,
-    data: signUpData,
-    error: signUpError,
-  } = useSignUp(account?.address!, signMessageData!);
-  const {
-    login,
-    data: loginData,
-    error: loginError,
-  } = useLogin(account?.address!, signMessageData!);
-  const {
-    data: userExistsData,
-    userExists,
-    error: userExistsError,
-  } = useUserExists(account?.address!, signMessageData!);
+  const { data: signUpData } = useSignUp(account?.address!, signMessageData!);
+  const { data: loginData } = useLogin(account?.address!, signMessageData!);
 
   /**
    * authenticate
@@ -43,8 +29,6 @@ export default function Login() {
       globalContext.setLoading(true);
       // get .env values
       const envData = await getEnv();
-
-      // signMessage
       await signMessageAsync({ message: envData.SECRET_MESSAGE });
     } catch (err) {
       console.error("error:", err);
@@ -54,38 +38,17 @@ export default function Login() {
   };
 
   useEffect(() => {
-    const handleAuth = async () => {
-      await userExists();
-      if (userExistsError) {
-        console.error("userExistsError:", userExistsError);
-        return;
+    console.log("signMessageData:", signMessageData);
+    if (signMessageData) {
+      if (signUpData) {
+        console.log("signUpData:", signUpData);
+        router.push("/my-box");
+      } else if (loginData) {
+        console.log("loginData:", loginData);
+        router.push("/my-box");
       }
-
-      if (userExistsData && userExistsData.exists) {
-        console.log("userExistsData:", userExistsData);
-        await login();
-        if (loginError) {
-          console.error("loginError:", loginError);
-          return;
-        }
-        if (loginData) {
-          console.log("loginData:", loginData);
-          router.push("/my-box");
-        }
-      } else {
-        await signUp();
-        if (signUpError) {
-          console.error("signUpError:", signUpError);
-          return;
-        }
-        if (signUpData) {
-          console.log("signUpData:", signUpData);
-          router.push("/my-box");
-        }
-      }
-    };
-    handleAuth();
-  }, [signMessageData, userExistsData.exists]);
+    }
+  }, [signMessageData, signUpData, loginData]);
 
   return (
     <div className={`w-screen h-screen bg-HeroImage bg-cover text-N16`}>

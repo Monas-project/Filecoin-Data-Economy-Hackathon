@@ -2,6 +2,7 @@ import { GlobalContext } from "@/context/GlobalProvider";
 import * as dotenv from "dotenv";
 import "dotenv/config";
 import { useContext, useEffect, useState } from "react";
+import { useUserExists } from "./useUserExists";
 
 dotenv.config();
 
@@ -19,6 +20,11 @@ export const useSignUp = (address: `0x${string}`, signature: `0x${string}`) => {
     setRootId,
     setRootKey,
   } = useContext(GlobalContext);
+
+  const { data: userExistsData, error: userExistsError } = useUserExists(
+    address,
+    signature
+  );
 
   const signUp = async () => {
     if (!address || !signature) return;
@@ -55,7 +61,6 @@ export const useSignUp = (address: `0x${string}`, signature: `0x${string}`) => {
       setData(data);
       setRootId(data?.root_node?.root_id);
       setRootKey(data?.root_node?.subfolder_key);
-      return data;
     } catch (err) {
       console.error("err:", err);
       setError(
@@ -67,8 +72,12 @@ export const useSignUp = (address: `0x${string}`, signature: `0x${string}`) => {
   };
 
   useEffect(() => {
+    if (userExistsData?.exists) {
+      return;
+    }
+    console.log("useEffect: useSignUp");
     signUp();
-  }, [address, signature]);
+  }, [userExistsData, accessToken]);
 
   return { signUp, data, loading, error };
 };

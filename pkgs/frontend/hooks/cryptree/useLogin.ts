@@ -2,11 +2,12 @@ import { useContext, useEffect, useState } from "react";
 import * as dotenv from "dotenv";
 import "dotenv/config";
 import { GlobalContext } from "@/context/GlobalProvider";
+import { useUserExists } from "./useUserExists";
 
 dotenv.config();
 const baseUrl: string = process.env.CRYPTREE_API_URL || "http://localhost:8000";
 
-export const useLogin = (address: string, signature: `0x${string}`) => {
+export const useLogin = (address: `0x${string}`, signature: `0x${string}`) => {
   const [data, setData] = useState(null);
   // const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -18,6 +19,11 @@ export const useLogin = (address: string, signature: `0x${string}`) => {
     setRootId,
     setRootKey,
   } = useContext(GlobalContext);
+
+  const { data: userExistsData, error: userExistsError } = useUserExists(
+    address,
+    signature
+  );
 
   const login = async () => {
     if (!address || !signature) return;
@@ -58,8 +64,12 @@ export const useLogin = (address: string, signature: `0x${string}`) => {
   };
 
   useEffect(() => {
+    if (userExistsData?.exists === false) {
+      return;
+    }
+    console.log("useEffect: useLogin");
     login();
-  }, [address, signature]);
+  }, [userExistsData, accessToken]);
 
   return { data, login, loading, error };
 };

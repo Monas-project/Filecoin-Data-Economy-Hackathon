@@ -33,9 +33,9 @@ import "react-toastify/dist/ReactToastify.css";
 import { useAccount, useSignMessage, useWalletClient } from "wagmi";
 import { ResponseData } from "./api/env";
 import { useGetNode } from "@/hooks/cryptree/useGetNode";
-import { root } from "postcss";
 import { useUserExists } from "@/hooks/cryptree/useUserExists";
 import { useRouter } from "next/router";
+import { createNode } from "@/cryptree/createNode";
 
 const fileTableTr = [
   { th: "Name", width: 54 },
@@ -59,7 +59,7 @@ export default function MyBox() {
   console.log("account:", address);
   console.log("isConnected:", isConnected);
   const { data: signMessageData, signMessageAsync } = useSignMessage();
-  const { rootId, rootKey } = globalContext;
+  const { rootId, rootKey, accessToken, setRootId } = globalContext;
   const {
     data: getNodeData,
     getNode,
@@ -119,13 +119,27 @@ export default function MyBox() {
    * createFolder function
    */
   const createFolder = async () => {
+    if (!address || !rootId) return;
     try {
       globalContext.setLoading(true);
       // TODO call encrypt API from cryptree
       // TODO call ipfs API from cryptree
       // call same API when upload file & creat folder
       // call insert method
-      await insertTableData("test", "test");
+      const res = await createNode(
+        accessToken!,
+        "test " + Math.random().toString(36).slice(-8),
+        address!,
+        rootId!,
+        rootKey!
+      );
+      setRootId(res.root_id);
+      console.log("datata:", res);
+
+      // fileの場合は、file_dataにデータが入る
+      if (res.metadata.children.length > 0 && res.metadata.children[0].fk) {
+        await insertTableData(res.root_id, res.cid);
+      }
 
       toast.success(
         "CreateFolder Success!! Please wait a moment until it is reflected.",
@@ -395,7 +409,7 @@ export default function MyBox() {
             <div className="w-full grow flex flex-col px-8 py-6 space-y-8">
               <div className="w-full space-y-4">
                 <div className="text-TitleMedium">Recent Files</div>
-                <div>{JSON.stringify(getNodeData)}</div>
+                {/* <div>{JSON.stringify(getNodeData)}</div> */}
                 <div className="flex flex-row px-8 space-x-4">
                   <CompoundButton
                     headerIcon={<FolderIcon />}
@@ -417,12 +431,12 @@ export default function MyBox() {
                     </tr>
                   </thead>
                   <tbody className="flex flex-col w-full last:[&>tr]:border-none">
-                    {tableDatas?.map((data: any, i) => (
+                    {getNodeData?.children?.map((data: any, i) => (
                       <tr
                         key={i}
                         onClick={() => {
                           setIsSelected(!isSelected);
-                          setIsSelectedId(data.id);
+                          setIsSelectedId(getNodeData.metadata.children[i].cid);
                         }}
                         className={`w-full flex flex-row pl-8 py-3 space-x-8 border-b border-NV150 text-BodyLarge text-NV10 items-center group 
                                               ${
@@ -436,15 +450,27 @@ export default function MyBox() {
                           style={{ width: `${fileTableTr[0].width}%` }}
                           className="flex flex-row items-center space-x-6"
                         >
-                          <DocumentIcon />
-                          <div>{getNodeData?.children[0].name}</div>
+                          {data.file_data && data.file_data.length > 0 ? (
+                            <DocumentIcon />
+                          ) : (
+                            <FolderIcon />
+                          )}
+                          <div>{data.metadata.name}</div>
                           <div>{data.cid}</div>
                         </td>
                         <td style={{ width: `${fileTableTr[1].width}%` }}>
-                          0x123...576
+                          {data.metadata.owner_id.slice(0, 6) +
+                            "..." +
+                            data.metadata.owner_id.slice(-4)}
                         </td>
                         <td style={{ width: `${fileTableTr[2].width}%` }}>
-                          02-09-2023 12:46:39
+                          {new Date(
+                            data.metadata.created_at
+                          ).toLocaleDateString() +
+                            " " +
+                            new Date(
+                              data.metadata.created_at
+                            ).toLocaleTimeString()}
                         </td>
                         <td
                           style={{ width: `${fileTableTr[3].width}%` }}

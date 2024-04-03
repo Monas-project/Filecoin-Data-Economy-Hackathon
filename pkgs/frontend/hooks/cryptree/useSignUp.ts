@@ -51,6 +51,7 @@ export const useSignUp = (address: `0x${string}`, signature: `0x${string}`) => {
       if (res.status === 400 && data.detail === "User already exists") {
         throw new Error(data.detail);
       } else if (!res.ok) {
+        console.error("err:", data);
         throw new Error("Failed to signup");
       }
 

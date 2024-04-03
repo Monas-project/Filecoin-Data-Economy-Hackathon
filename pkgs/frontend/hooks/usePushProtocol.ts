@@ -47,13 +47,22 @@ export const getPushInfo = async (signer: any) => {
   // console.log("subscriptions:", subscriptions);
   // console.log("channelInfo:", channelInfo);
 
+  const result: ListInfo[] = [];
   // get notification info
   const listInfo: ListInfo[] = await pushUser.notification.list("SPAM");
   console.log("listInfo:", listInfo);
   const listInfo2: ListInfo[] = await pushUser.notification.list("INBOX");
   console.log("listInfo2:", listInfo2);
 
-  return listInfo;
+  // SPAMとINBOXの中身を詰める
+  for (let i = 0; i < listInfo.length; i++) {
+    result.push(listInfo[i]);
+  }
+  for (let i = 0; i < listInfo2.length; i++) {
+    result.push(listInfo2[i]);
+  }
+
+  return result;
 };
 
 /**

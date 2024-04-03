@@ -11,31 +11,17 @@ type CreateNodeResponse = {
   root_id: any;
 };
 
-export const createNode = async (
-  accessToken: string,
-  name: string,
-  owner_id: string,
-  parent_cid: string,
-  subfolder_key: string,
-  file_data: string | null = null
-) => {
-  console.log("owner_id:", owner_id);
+export const createNode = async (accessToken: string, formData: FormData) => {
+  console.log("formData:", formData);
 
-  if (!name || !owner_id || !subfolder_key || !parent_cid) return;
+  if (!formData) return;
   try {
     const res = await fetch(`${baseUrl}/api/create`, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${accessToken}`,
       },
-      body: JSON.stringify({
-        name,
-        owner_id,
-        parent_cid,
-        subfolder_key,
-        file_data,
-      }),
+      body: formData,
     });
 
     console.log("res:", res);

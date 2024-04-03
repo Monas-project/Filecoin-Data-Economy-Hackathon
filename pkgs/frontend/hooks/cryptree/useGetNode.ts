@@ -10,7 +10,7 @@ type GetNodeResponse = {
   metadata: any;
   subfolder_key: string;
   root_id: string;
-  file_data: string;
+  file_data: any;
   children: any[];
 };
 

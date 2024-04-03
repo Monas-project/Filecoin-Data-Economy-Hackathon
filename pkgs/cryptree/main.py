@@ -1,4 +1,5 @@
-from fastapi import Depends, APIRouter, FastAPI, HTTPException, status, Body, Form
+from fastapi import Depends, APIRouter, FastAPI, HTTPException, status, Body, Form, Depends, HTTPException, Form, File, UploadFile
+from typing import Optional
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.middleware.cors import CORSMiddleware
 from crypt_tree_node import CryptreeNode
@@ -12,6 +13,7 @@ import os
 from dotenv import load_dotenv
 from fake_ipfs import FakeIPFS
 from ipfs_client import IpfsClient
+import base64
 
 
 # .envファイルの内容を読み込見込む
@@ -149,13 +151,20 @@ async def login(request: LoginRequest = Body(...)):
 
 
 @router.post("/create")
-async def create(request: CreateNodeRequest = Body(...), current_user: dict = Depends(get_current_user)):
-    parent_cid = request.parent_cid
-    parent_subfolder_key = request.subfolder_key
+async def create(
+    name: str = Form(...),
+    owner_id: str = Form(...),
+    parent_cid: str = Form(...),
+    subfolder_key: Optional[str] = Form(None),
+    file_data: Optional[UploadFile] = File(None),
+    current_user: dict = Depends(get_current_user),
+):
+    parent_subfolder_key = subfolder_key
     current_node = CryptreeNode.get_node(parent_cid, parent_subfolder_key, ipfs_client)
-    file_data = request.file_data.encode() if request.file_data else None
+    # file_data = request.file_data.encode() if request.file_data else None
+    file_data = await file_data.read() if file_data else None
     try:
-        new_node = CryptreeNode.create_node(name=request.name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data, ipfs_client=ipfs_client)
+        new_node = CryptreeNode.create_node(name=name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data, ipfs_client=ipfs_client)
         root_id, _ = Tableland.get_root_info(current_user["address"]);
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -180,12 +189,15 @@ async def fetch(request: FetchNodeRequest = Body(...), current_user: dict = Depe
         root_id=root_id,
     )
     # fileの場合、ファイルデータを復号
-    if len(children) == 1 and children[0].fk is not None:
-        enc_file_data = ipfs_client.cat(children[0].cid)
-        file_data = CryptreeNode.decrypt(children[0].fk, enc_file_data).decode()
-        response.file_data = file_data
-    elif len(children) > 0:
+    if len(children) > 0:
         response.children = [CryptreeNode.get_node(child.cid, child.sk, ipfs_client) for child in children]
+        for child in response.children:
+            if len(child.metadata.children) == 1 and child.metadata.children[0].fk is not None:
+                enc_file_data = ipfs_client.cat(child.metadata.children[0].cid)
+                # print(enc_file_data)
+                file_data = CryptreeNode.decrypt(child.metadata.children[0].fk, enc_file_data)
+                # print(file_data)
+                child.file_data = base64.b64encode(file_data).decode('utf-8')
     return response
 
 @router.post("/re-encrypt")

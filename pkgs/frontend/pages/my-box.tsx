@@ -36,12 +36,13 @@ import { useGetNode } from "@/hooks/cryptree/useGetNode";
 import { useUserExists } from "@/hooks/cryptree/useUserExists";
 import { useRouter } from "next/router";
 import { createNode } from "@/cryptree/createNode";
+import FileUpload from "@/components/elements/FileUpload/FileUpload";
 
 const fileTableTr = [
-  { th: "Name", width: 54 },
-  { th: "Owner", width: 13 },
-  { th: "Data Modified", width: 13 },
-  { th: "", width: 20 },
+  { th: "Name", width: 35 },
+  { th: "Owner", width: 25 },
+  { th: "Data Modified", width: 14 },
+  { th: "More", width: 20 },
 ];
 
 export default function MyBox() {
@@ -52,6 +53,8 @@ export default function MyBox() {
   const [to, setTo] = useState<any>();
   const [env, setEnv] = useState<ResponseData>();
   const router = useRouter();
+  const [isFileUploadModalOpen, setIsFileUploadModalOpen] = useState(false);
+  const [sharingData, setSharingData] = useState<any>(null);
 
   const globalContext = useContext(GlobalContext);
   const { data: walletClient } = useWalletClient();
@@ -72,18 +75,37 @@ export default function MyBox() {
     error: userExistsError,
   } = useUserExists(walletClient?.account?.address!, signMessageData!);
 
+  const openShareModal = (cid: string, key: string) => {
+    setSharingData({ cid, key });
+    setIsShareModalOpen(true);
+  };
+
   /**
    * uploadFile function
    */
-  const uploadFile = async () => {
+  const uploadFile = async (selectedFile: File | null) => {
+    if (!selectedFile) return; // ファイルが選択されていなければ早期リターン
+
+    const formData = new FormData();
+    formData.append("file_data", selectedFile);
+    formData.append("name", selectedFile.name);
+    formData.append("owner_id", address!);
+    formData.append("subfolder_key", rootKey!);
+    formData.append("parent_cid", rootId!);
+
+    // ここにファイルアップロードのためのAPI呼び出し処理を記述します
+    console.log("ファイルをアップロード中…");
+    // 例: axios.post('your-upload-endpoint', formData);
     try {
       globalContext.setLoading(true);
       // TODO call encrypt API from cryptree
       // TODO call ipfs API from cryptree
       // call same API when upload file & creat folder
+      const res = await createNode(accessToken!, formData);
 
       // call insert method
-      await insertTableData("test", "test");
+      setRootId(res.root_id);
+      await insertTableData(res.root_id, res.cid);
 
       toast.success(
         "Upload Success!! Please wait a moment until it is reflected.",
@@ -112,6 +134,7 @@ export default function MyBox() {
       });
     } finally {
       globalContext.setLoading(false);
+      setIsFileUploadModalOpen(false);
     }
   };
 
@@ -124,15 +147,14 @@ export default function MyBox() {
       globalContext.setLoading(true);
       // TODO call encrypt API from cryptree
       // TODO call ipfs API from cryptree
-      // call same API when upload file & creat folder
+      // call same API when upload file & create folder
       // call insert method
-      const res = await createNode(
-        accessToken!,
-        "test " + Math.random().toString(36).slice(-8),
-        address!,
-        rootId!,
-        rootKey!
-      );
+      const formData = new FormData();
+      formData.append("name", "test " + Math.random().toString(36).slice(-8));
+      formData.append("owner_id", address);
+      formData.append("subfolder_key", rootKey!);
+      formData.append("parent_cid", rootId!);
+      const res = await createNode(accessToken!, formData);
       setRootId(res.root_id);
       console.log("datata:", res);
 
@@ -222,7 +244,7 @@ export default function MyBox() {
       const results: TableData[] = await getSelectedTableData(isSelectedId);
       console.log("results[0]:", results[0]);
       // call sendNotification method
-      await sendNotification(to, results[0].fileCid, "test", results[0].rootId);
+      await sendNotification(to, sharingData?.cid, sharingData?.key, rootId!);
 
       toast.success(
         "Share File Success!! Please wait a moment until it is reflected.",
@@ -294,14 +316,41 @@ export default function MyBox() {
     }
   };
 
+  const downloadFile = (data: string, name: string) => {
+    // Base64エンコードされたデータから直接Blobを生成
+    const byteCharacters = atob(data);
+    const byteNumbers = new Array(byteCharacters.length);
+    for (let i = 0; i < byteCharacters.length; i++) {
+      byteNumbers[i] = byteCharacters.charCodeAt(i);
+    }
+    const byteArray = new Uint8Array(byteNumbers);
+
+    const blob = new Blob([byteArray], { type: "application/octet-stream" });
+
+    // Blobからダウンロード用のURLを生成
+    const blobUrl = URL.createObjectURL(blob);
+
+    // 生成したURLを利用してファイルをダウンロード
+    const link = document.createElement("a");
+    link.href = blobUrl;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+
+    // 生成したオブジェクトURLの解放
+    URL.revokeObjectURL(link.href);
+    document.body.removeChild(link);
+  };
+
   /**
    * download function
    */
-  const download = async () => {
+  const download = async (data: string, name: string) => {
     try {
       globalContext.setLoading(true);
       // TODO CID
       // Fileオブジェクトをダウンロードする処理を入れる。
+      downloadFile(data, name);
 
       toast.success(
         "download File Success!! Please wait a moment until it is reflected.",
@@ -391,7 +440,7 @@ export default function MyBox() {
                     layout="neutral"
                     headerVisible={true}
                     headerIcon={<DocumentArrowUp20Regular />}
-                    onClick={uploadFile}
+                    onClick={() => setIsFileUploadModalOpen(true)}
                   >
                     Upload File
                   </Button>
@@ -409,7 +458,7 @@ export default function MyBox() {
             <div className="w-full grow flex flex-col px-8 py-6 space-y-8">
               <div className="w-full space-y-4">
                 <div className="text-TitleMedium">Recent Files</div>
-                {/* <div>{JSON.stringify(getNodeData)}</div> */}
+                <div>{JSON.stringify(getNodeData)}</div>
                 <div className="flex flex-row px-8 space-x-4">
                   <CompoundButton
                     headerIcon={<FolderIcon />}
@@ -420,7 +469,7 @@ export default function MyBox() {
                 </div>
               </div>
               <div className="w-full grow rounded-lg px-6 bg-N96">
-                <table className="w-full inline-block text-left">
+                <table className="w-full inline-block">
                   <thead className="w-full flex flex-row px-4 py-4 border-b border-NV130 text-TitleSmall text-NV60">
                     <tr className="w-full h-fit flex [&_th]:p-0 [&_th]:inline-block space-x-8 [&_th]:font-medium">
                       {fileTableTr.map((x) => (
@@ -455,8 +504,7 @@ export default function MyBox() {
                           ) : (
                             <FolderIcon />
                           )}
-                          <div>{data.metadata.name}</div>
-                          <div>{data.cid}</div>
+                          <div className="ml-4">{data.metadata.name}</div>
                         </td>
                         <td style={{ width: `${fileTableTr[1].width}%` }}>
                           {data.metadata.owner_id.slice(0, 6) +
@@ -481,15 +529,27 @@ export default function MyBox() {
                               isSelected ? "flex" : "hidden"
                             }`}
                           >
+                            {data.file_data && data.file_data.length > 0 ? (
+                              <Button
+                                layout="subtle"
+                                headerVisible={true}
+                                headerIcon={<ArrowDownload20Regular />}
+                                labelVisible={false}
+                                onClick={() =>
+                                  download(data.file_data, data.metadata.name)
+                                }
+                              ></Button>
+                            ) : null}
                             <Button
-                              layout="subtle"
-                              headerVisible={true}
-                              headerIcon={<ArrowDownload20Regular />}
-                              labelVisible={false}
-                              onClick={download}
-                            ></Button>
-                            <Button
-                              onClick={() => setIsShareModalOpen(true)}
+                              onClick={() => {
+                                const key = getNodeData?.metadata.children[i].fk
+                                  ? getNodeData?.metadata.children[i].fk
+                                  : getNodeData?.metadata.children[i].sk;
+                                openShareModal(
+                                  getNodeData?.metadata.children[i].cid,
+                                  key
+                                );
+                              }}
                               layout="subtle"
                               headerVisible={true}
                               headerIcon={<Share20Regular />}
@@ -521,6 +581,34 @@ export default function MyBox() {
               </div>
             </div>
           </>
+        )}
+        {isFileUploadModalOpen && (
+          <div
+            onClick={(e) =>
+              e.target === e.currentTarget && setIsFileUploadModalOpen(false)
+            }
+            className="fixed top-0 left-0 right-0 bottom-0 bg-N0/60"
+          >
+            <div className="relative top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/2 rounded-lg bg-N96 p-8 space-y-6">
+              <div className="text-TitleLarge">Upload File</div>
+              {/* uploading file */}
+
+              <FileUpload
+                onFileSelect={(file) => console.log("file: ", file)}
+                uploadFile={uploadFile}
+              />
+
+              <div className="w-full flex flex-row justify-between">
+                <Button
+                  layout="neutral"
+                  size="large"
+                  onClick={() => setIsFileUploadModalOpen(false)}
+                >
+                  Close
+                </Button>
+              </div>
+            </div>
+          </div>
         )}
         {/* Share Button Dialog */}
         {isShareModalOpen && (

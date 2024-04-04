@@ -1,14 +1,17 @@
 import React, { useState } from "react";
+import Button from "../Button/Button";
 
 // Propsの型定義
 interface FileUploadProps {
   onFileSelect: (file: File) => void; // ファイル選択時のコールバック関数
   uploadFile: (file: File | null) => Promise<void>; // ファイルアップロード時のコールバック関数
+  close: () => void;
 }
 
 const FileUpload: React.FC<FileUploadProps> = ({
   onFileSelect,
   uploadFile,
+  close,
 }) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
@@ -30,7 +33,14 @@ const FileUpload: React.FC<FileUploadProps> = ({
       {selectedFile && (
         <div>
           <p>選択されたファイル: {selectedFile.name}</p>
-          <button onClick={uploadingFile}>アップロード</button>
+          <div className="flex mt-4 justify-around">
+            <Button layout="neutral" size="large" onClick={close}>
+              Close
+            </Button>
+            <Button layout="neutral" size="large" onClick={uploadingFile}>
+              Upload
+            </Button>
+          </div>
         </div>
       )}
     </div>

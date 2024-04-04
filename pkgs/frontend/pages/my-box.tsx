@@ -596,17 +596,8 @@ export default function MyBox() {
               <FileUpload
                 onFileSelect={(file) => console.log("file: ", file)}
                 uploadFile={uploadFile}
+                close={() => setIsFileUploadModalOpen(false)}
               />
-
-              <div className="w-full flex flex-row justify-between">
-                <Button
-                  layout="neutral"
-                  size="large"
-                  onClick={() => setIsFileUploadModalOpen(false)}
-                >
-                  Close
-                </Button>
-              </div>
             </div>
           </div>
         )}

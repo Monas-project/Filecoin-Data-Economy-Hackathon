@@ -179,10 +179,9 @@ async def create(
 async def fetch(request: FetchNodeRequest = Body(...), current_user: dict = Depends(get_current_user)) -> FetchNodeResponse:
     subfolder_key = request.subfolder_key
     cid = request.cid
-    address = request.owner_id
     node = CryptreeNode.get_node(cid, subfolder_key, ipfs_client)
     children = node.metadata.children
-    root_id, _ = Tableland.get_root_info(address)
+    root_id, _ = Tableland.get_root_info(node.metadata.owner_id)
     response = FetchNodeResponse(
         metadata=node.metadata,
         subfolder_key=node.subfolder_key,
@@ -190,7 +189,12 @@ async def fetch(request: FetchNodeRequest = Body(...), current_user: dict = Depe
     )
     # fileの場合、ファイルデータを復号
     if len(children) > 0:
-        response.children = [CryptreeNode.get_node(child.cid, child.sk, ipfs_client) for child in children]
+        if len(children) == 1 and children[0].fk is not None:
+            enc_file_data = ipfs_client.cat(children[0].cid)
+            file_data = CryptreeNode.decrypt(children[0].fk, enc_file_data)
+            response.file_data = base64.b64encode(file_data).decode('utf-8')
+        else:
+            response.children = [CryptreeNode.get_node(child.cid, child.sk if child.sk is not None else child.fk, ipfs_client) for child in children]
         for child in response.children:
             if len(child.metadata.children) == 1 and child.metadata.children[0].fk is not None:
                 enc_file_data = ipfs_client.cat(child.metadata.children[0].cid)

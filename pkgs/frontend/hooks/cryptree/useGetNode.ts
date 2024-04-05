@@ -14,11 +14,7 @@ type GetNodeResponse = {
   children: any[];
 };
 
-export const useGetNode = (
-  owner_id: string,
-  subfolder_key: string,
-  cid: string
-) => {
+export const useGetNode = (subfolder_key: string, cid: string) => {
   const [data, setData] = useState<GetNodeResponse | null>(null);
   const [error, setError] = useState<Error | null>(null);
   const {
@@ -31,8 +27,7 @@ export const useGetNode = (
   } = useContext(GlobalContext);
 
   const getNode = async () => {
-    console.log("owner_id:", owner_id);
-    if (!owner_id || !subfolder_key || !cid) return;
+    if (!subfolder_key || !cid) return;
     setLoading(true);
     try {
       const res = await fetch(`${baseUrl}/api/fetch`, {
@@ -42,7 +37,6 @@ export const useGetNode = (
           Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify({
-          owner_id,
           subfolder_key,
           cid,
         }),
@@ -69,7 +63,7 @@ export const useGetNode = (
 
   useEffect(() => {
     getNode();
-  }, [owner_id, subfolder_key, cid]);
+  }, [subfolder_key, cid]);
 
   return { data, getNode, loading, error };
 };

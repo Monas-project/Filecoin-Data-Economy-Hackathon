@@ -37,6 +37,7 @@ import { useUserExists } from "@/hooks/cryptree/useUserExists";
 import { useRouter } from "next/router";
 import { createNode } from "@/cryptree/createNode";
 import FileUpload from "@/components/elements/FileUpload/FileUpload";
+import { downloadFile } from "@/utils/downloadFile";
 
 const fileTableTr = [
   { th: "Name", width: 35 },
@@ -67,7 +68,7 @@ export default function MyBox() {
     data: getNodeData,
     getNode,
     error: getNodeError,
-  } = useGetNode(address!, rootKey!, rootId!);
+  } = useGetNode(rootKey!, rootId!);
 
   const {
     userExists,
@@ -316,32 +317,6 @@ export default function MyBox() {
     }
   };
 
-  const downloadFile = (data: string, name: string) => {
-    // Base64エンコードされたデータから直接Blobを生成
-    const byteCharacters = atob(data);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-      byteNumbers[i] = byteCharacters.charCodeAt(i);
-    }
-    const byteArray = new Uint8Array(byteNumbers);
-
-    const blob = new Blob([byteArray], { type: "application/octet-stream" });
-
-    // Blobからダウンロード用のURLを生成
-    const blobUrl = URL.createObjectURL(blob);
-
-    // 生成したURLを利用してファイルをダウンロード
-    const link = document.createElement("a");
-    link.href = blobUrl;
-    link.download = name;
-    document.body.appendChild(link);
-    link.click();
-
-    // 生成したオブジェクトURLの解放
-    URL.revokeObjectURL(link.href);
-    document.body.removeChild(link);
-  };
-
   /**
    * download function
    */
@@ -458,7 +433,7 @@ export default function MyBox() {
             <div className="w-full grow flex flex-col px-8 py-6 space-y-8">
               <div className="w-full space-y-4">
                 <div className="text-TitleMedium">Recent Files</div>
-                <div>{JSON.stringify(getNodeData)}</div>
+                {/* <div>{JSON.stringify(getNodeData)}</div> */}
                 <div className="flex flex-row px-8 space-x-4">
                   <CompoundButton
                     headerIcon={<FolderIcon />}

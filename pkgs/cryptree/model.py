@@ -44,7 +44,6 @@ class CreateNodeRequest(BaseModel):
 class FetchNodeRequest(BaseModel):
     cid: str
     subfolder_key: str
-    owner_id: str # このCIDのノードの所有者のアドレス
 
 class FetchNodeResponse(BaseModel):
     metadata: Metadata

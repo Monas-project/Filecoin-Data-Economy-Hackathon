@@ -30,15 +30,15 @@ import {
 import { useContext, useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { useAccount, useSignMessage, useWalletClient } from "wagmi";
+import { useAccount, useWalletClient } from "wagmi";
 import { ResponseData } from "./api/env";
 import { useGetNode } from "@/hooks/cryptree/useGetNode";
-import { useUserExists } from "@/hooks/cryptree/useUserExists";
 import { useRouter } from "next/router";
 import { createNode } from "@/cryptree/createNode";
 import FileUpload from "@/components/elements/FileUpload/FileUpload";
 import { downloadFile } from "@/utils/downloadFile";
 import { reEncryptNode } from "@/cryptree/reEncryptNode";
+import Breadcrumb from "@/components/elements/Breadcrumb/Breadcrumb";
 
 const fileTableTr = [
   { th: "Name", width: 35 },
@@ -61,25 +61,55 @@ export default function MyBox() {
   const globalContext = useContext(GlobalContext);
   const { data: walletClient } = useWalletClient();
   const { address, isConnected } = useAccount();
-  console.log("account:", address);
-  console.log("isConnected:", isConnected);
-  const { data: signMessageData, signMessageAsync } = useSignMessage();
-  const { rootId, rootKey, accessToken, setRootId } = globalContext;
   const {
-    data: getNodeData,
-    getNode,
-    error: getNodeError,
-  } = useGetNode(rootKey!, rootId!);
+    rootId,
+    rootKey,
+    accessToken,
+    setRootId,
+    currentNodeCid,
+    setCurrentNodeCid,
+    currentNodeKey,
+    setCurrentNodeKey,
+  } = globalContext;
+  const { data: getNodeData, error: getNodeError } = useGetNode(
+    currentNodeKey!,
+    currentNodeCid!
+  );
 
-  const {
-    userExists,
-    data: userExistsData,
-    error: userExistsError,
-  } = useUserExists(walletClient?.account?.address!, signMessageData!);
+  const [breadcrumbItems, setBreadcrumbItems] = useState<any[]>([
+    {
+      text: "Own Space",
+      path: "/my-box",
+      cid: rootId!,
+      key: rootKey!,
+    },
+  ]);
 
   const openShareModal = (cid: string, key: string) => {
     setSharingData({ cid, key });
     setIsShareModalOpen(true);
+  };
+
+  const openNode = async (name: string, cid: string, subfolderKey: string) => {
+    setCurrentNodeCid(cid);
+    setCurrentNodeKey(subfolderKey);
+    const items = breadcrumbItems;
+    setBreadcrumbItems([
+      ...items,
+      {
+        text: name,
+        path: "/my-box",
+        cid,
+        key: subfolderKey,
+      },
+    ]);
+  };
+
+  const moveToDir = (index: number) => {
+    const items = breadcrumbItems.slice(0, index + 1);
+    setCurrentNodeCid(breadcrumbItems[index].cid);
+    setCurrentNodeKey(breadcrumbItems[index].key);
+    setBreadcrumbItems(items);
   };
 
   /**
@@ -92,8 +122,8 @@ export default function MyBox() {
     formData.append("file_data", selectedFile);
     formData.append("name", selectedFile.name);
     formData.append("owner_id", address!);
-    formData.append("subfolder_key", rootKey!);
-    formData.append("parent_cid", rootId!);
+    formData.append("subfolder_key", currentNodeKey!);
+    formData.append("parent_cid", currentNodeCid!);
 
     // ここにファイルアップロードのためのAPI呼び出し処理を記述します
     console.log("ファイルをアップロード中…");
@@ -102,11 +132,21 @@ export default function MyBox() {
       globalContext.setLoading(true);
       // TODO call encrypt API from cryptree
       // TODO call ipfs API from cryptree
-      // call same API when upload file & creat folder
+      // call same API when upload file & create folder
       const res = await createNode(accessToken!, formData);
 
-      // call insert method
       setRootId(res.root_id);
+      setCurrentNodeCid(res.root_id);
+      setCurrentNodeKey(rootKey!);
+      setBreadcrumbItems([
+        {
+          text: "Own Space",
+          path: "/my-box",
+          cid: rootId!,
+          key: rootKey!,
+        },
+      ]);
+      // call insert method
       await insertTableData(res.root_id, res.cid);
 
       toast.success(
@@ -144,7 +184,7 @@ export default function MyBox() {
    * createFolder function
    */
   const createFolder = async () => {
-    if (!address || !rootId) return;
+    if (!address || !currentNodeCid || !currentNodeKey) return;
     try {
       globalContext.setLoading(true);
       // TODO call encrypt API from cryptree
@@ -154,11 +194,20 @@ export default function MyBox() {
       const formData = new FormData();
       formData.append("name", "test " + Math.random().toString(36).slice(-8));
       formData.append("owner_id", address);
-      formData.append("subfolder_key", rootKey!);
-      formData.append("parent_cid", rootId!);
+      formData.append("subfolder_key", currentNodeKey!);
+      formData.append("parent_cid", currentNodeCid!);
       const res = await createNode(accessToken!, formData);
       setRootId(res.root_id);
-      console.log("datata:", res);
+      setCurrentNodeCid(res.root_id);
+      setCurrentNodeKey(rootKey!);
+      setBreadcrumbItems([
+        {
+          text: "Own Space",
+          path: "/my-box",
+          cid: rootId!,
+          key: rootKey!,
+        },
+      ]);
 
       // fileの場合は、file_dataにデータが入る
       if (res.metadata.children.length > 0 && res.metadata.children[0].fk) {
@@ -281,19 +330,18 @@ export default function MyBox() {
   /**
    * reEncrypt function
    */
-  const reEncrypt = async () => {
+  const reEncrypt = async (targetCid: string) => {
     try {
       globalContext.setLoading(true);
       // TODO call reEncrypt API from cryptree
       // TODO call ipfs API from cryptree
       // TODO call upate query
-      console.log("isSelectedId", isSelectedId);
 
       const res = await reEncryptNode(
         accessToken!,
-        isSelectedId,
-        rootKey!,
-        rootId!
+        targetCid,
+        currentNodeKey!,
+        currentNodeCid!
       );
 
       console.log("res:", res);
@@ -381,7 +429,7 @@ export default function MyBox() {
         await createContract(walletClient);
         // get all table data
 
-        await getNode();
+        // await getNode();
         const tableData = await getAllTableData();
         console.log("getNodeData:", getNodeData);
         const metadata = getNodeData?.metadata;
@@ -396,7 +444,7 @@ export default function MyBox() {
       }
     };
     init();
-  }, [rootId, isConnected]);
+  }, [currentNodeCid, currentNodeKey, isConnected]);
 
   return (
     <LayoutMain>
@@ -407,7 +455,8 @@ export default function MyBox() {
           <>
             <div className="w-full flex flex-col space-y-6 px-8 py-6 shadow-Elevation01 sticky top-0 bg-N92">
               <div className="flex flex-row justify-between">
-                <div className="text-TitleLarge">Own Space</div>
+                <Breadcrumb items={breadcrumbItems} onNavigate={moveToDir} />
+                {/* <div className="text-TitleLarge">Own Space</div> */}
                 <Button
                   layout="subtle"
                   headerVisible={true}
@@ -473,6 +522,13 @@ export default function MyBox() {
                           setIsSelected(!isSelected);
                           setIsSelectedId(getNodeData.metadata.children[i].cid);
                         }}
+                        onDoubleClick={() =>
+                          openNode(
+                            data.metadata.name,
+                            getNodeData.metadata.children[i].cid,
+                            data.subfolder_key
+                          )
+                        }
                         className={`w-full flex flex-row pl-8 py-3 space-x-8 border-b border-NV150 text-BodyLarge text-NV10 items-center group 
                                               ${
                                                 isSelected
@@ -555,7 +611,9 @@ export default function MyBox() {
                               headerVisible={true}
                               headerIcon={<Key20Regular />}
                               labelVisible={false}
-                              onClick={reEncrypt}
+                              onClick={() =>
+                                reEncrypt(getNodeData.metadata.children[i].cid)
+                              }
                             ></Button>
                           </div>
                           <MoreVertical16Regular />

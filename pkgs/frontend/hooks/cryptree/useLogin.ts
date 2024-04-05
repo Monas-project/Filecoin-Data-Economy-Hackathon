@@ -18,6 +18,8 @@ export const useLogin = (address: `0x${string}`, signature: `0x${string}`) => {
     setLoading,
     setRootId,
     setRootKey,
+    setCurrentNodeCid,
+    setCurrentNodeKey,
   } = useContext(GlobalContext);
 
   const { data: userExistsData, error: userExistsError } = useUserExists(
@@ -51,6 +53,8 @@ export const useLogin = (address: `0x${string}`, signature: `0x${string}`) => {
       }
 
       setData(data);
+      setCurrentNodeCid(data?.root_node?.root_id);
+      setCurrentNodeKey(data?.root_node?.subfolder_key);
       setRootId(data?.root_node?.root_id);
       setRootKey(data?.root_node?.subfolder_key);
     } catch (err) {

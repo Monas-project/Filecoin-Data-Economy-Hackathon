@@ -24,12 +24,17 @@ export const useGetNode = (subfolder_key: string, cid: string) => {
     setLoading,
     setRootId,
     setRootKey,
+    setCurrentNodeCid,
+    setCurrentNodeKey,
   } = useContext(GlobalContext);
 
   const getNode = async () => {
+    console.log("subfolder_keyyy:", subfolder_key);
+    console.log("cidddd:", cid);
     if (!subfolder_key || !cid) return;
     setLoading(true);
     try {
+      setData(null);
       const res = await fetch(`${baseUrl}/api/fetch`, {
         method: "POST",
         headers: {
@@ -49,9 +54,9 @@ export const useGetNode = (subfolder_key: string, cid: string) => {
       }
 
       const data = await res.json();
-
       setData(data);
     } catch (err) {
+      setData(data);
       console.error("err:", err);
       setError(
         err instanceof Error ? err : new Error("An unknown error occurred")

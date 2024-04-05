@@ -38,6 +38,7 @@ import { useRouter } from "next/router";
 import { createNode } from "@/cryptree/createNode";
 import FileUpload from "@/components/elements/FileUpload/FileUpload";
 import { downloadFile } from "@/utils/downloadFile";
+import { reEncryptNode } from "@/cryptree/reEncryptNode";
 
 const fileTableTr = [
   { th: "Name", width: 35 },
@@ -286,6 +287,16 @@ export default function MyBox() {
       // TODO call reEncrypt API from cryptree
       // TODO call ipfs API from cryptree
       // TODO call upate query
+      console.log("isSelectedId", isSelectedId);
+
+      const res = await reEncryptNode(
+        accessToken!,
+        isSelectedId,
+        rootKey!,
+        rootId!
+      );
+
+      console.log("res:", res);
 
       toast.success(
         "reEncrypt File Success!! Please wait a moment until it is reflected.",

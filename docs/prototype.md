@@ -15,7 +15,8 @@ Our prototype specifically focuses on enhancing the functionality of read access
 
 
 ## System configuration　　
-![system configuration]()  
+![system configuration](https://raw.githubusercontent.com/user/repo/branch/path/to/image.png)  
+
 The prototype consists of **IPFS**, **Tableland**, **Push Protocol**, **Filecoin** and **Polygon**. The features we implemented in this project are as follows  
 
 ### Encryption and decryption functions:
@@ -177,4 +178,28 @@ First, decryption is performed from a specific node down to the lowest layer, wh
 
 Upon reaching the lowest layer, the re_encrypt function generates a new file key for files and a new Subfolder Key for folders, performs encryption, saves it on IPFS, and continues the process up to the specific node.   
 
-Upon reaching the specific node, the process employs the `update_all_nodes` function to refresh the CID recorded in the children of the parent folder, similar to the procedure used when adding a folder. This updating process continues all the way up to the root node, ensuring that all changes are propagated through the hierarchy.
+Upon reaching the specific node, the process employs the `update_all_nodes` function to refresh the CID recorded in the children of the parent folder, similar to the procedure used when adding a folder. This updating process continues all the way up to the root node, ensuring that all changes are propagated through the hierarchy.  
+
+## Issues and Solutions
+In the development of our Monas prototype, we encountered various challenges that need continuous attention and improvement. Here are some detailed issues and their possible resolutions:  
+### Changing root_id with Node Addition and Re-encryption:
+This issue stems from our adoption of IPFS, which utilizes a content addressing system to maintain immutability. Comparable to a hash function mechanism, any additional write operations to metadata or files result in a changed CID. We've tackled this problem by integrating Tableland, associating addresses with root_id and root_key.
+Tableland Implementation  
+
+### Single Key Writings to Tableland on the Server Side:
+This is a common concern not just in our project, but in many services. There are several possible solutions to address this issue. For instance, the Threshold network project, which utilizes threshold cryptography, could offer a viable solution.
+
+### Key Management Issue:
+Currently, we have two separate keys: one for signing and another for encryption. Although we've resolved this in the prototype using Key Management Service (KMS), we believe there is a need to explore other solutions. Potential resolutions could involve the use of threshold cryptography or Multi-Party Computation (MPC). Additionally, by adopting Decentralized Identifiers (DID) to link the keys used for transactions and encryption, if we can verify control over the DID, it may enable simultaneous execution of both processes.  
+
+### Storage of Shared Keys
+ In the prototype, permissioned users share cid, key, and file_info via the Push Protocol, currently stored on IPFS. As we move to develop a P2P network in the next phase, we will need to decide where to store these keys. One idea is to create a directory within the Personal Data Store (PDS) to store the shared keys, allowing users access to authorized spaces whenever they use these keys.
+
+ ### Encryption Algorithm:
+ During the prototype implementation, we did not focus heavily on which encryption algorithms to use. However, considering that Monas will store sensitive information, we are looking to adopt algorithms with quantum resistance to enhance our security measures.
+
+### Optimization of Key Generation
+Keys are generated independently at each hierarchical layer and stored within the parent node's metadata to build cryptographic links. However, increasing the variety of keys to enhance flexibility raises issues about where to manage these keys. We are considering adopting the concept of deferred key derivation, where keys are generated on-the-fly and not stored. Designing a key derivation function could help manage keys at each hierarchical level effectively.
+
+### Timing for State Management Transactions in PDS
+Currently, only the administrators of the PDS can write to it. As we progress to further phases and changes in state occur more frequently, updating every single change individually could become costly, which is not user-friendly from a UX perspective. One approach is to accumulate changes and update them on a scheduled basis to reduce execution frequency and lower costs. Additionally, delegating the task of building a Merkle tree and using Zero-Knowledge proofs to verify the correct execution can prove that the operations have not been tampered with.

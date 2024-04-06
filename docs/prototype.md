@@ -181,25 +181,49 @@ Upon reaching the lowest layer, the re_encrypt function generates a new file key
 Upon reaching the specific node, the process employs the `update_all_nodes` function to refresh the CID recorded in the children of the parent folder, similar to the procedure used when adding a folder. This updating process continues all the way up to the root node, ensuring that all changes are propagated through the hierarchy.  
 
 ## Issues and Solutions
-In the development of our Monas prototype, we encountered various challenges that need continuous attention and improvement. Here are some detailed issues and their possible resolutions:  
-### Changing root_id with Node Addition and Re-encryption:
-This issue stems from our adoption of IPFS, which utilizes a content addressing system to maintain immutability. Comparable to a hash function mechanism, any additional write operations to metadata or files result in a changed CID. We've tackled this problem by integrating Tableland, associating addresses with root_id and root_key.
-Tableland Implementation  
+During the development of our Monas prototype, we encountered several challenges. Here, we detail these issues and outline our ongoing and proposed solutions.
 
-### Single Key Writings to Tableland on the Server Side:
-This is a common concern not just in our project, but in many services. There are several possible solutions to address this issue. For instance, the Threshold network project, which utilizes threshold cryptography, could offer a viable solution.
+### Issue: Changing root_id with Node Addition and Re-encryption
+- **Problem**: Integrating IPFS results in immutable content addresses. Any changes to metadata or files alter the CID, similar to a hash function.
+- **Solution**: We've implemented Tableland to link `root_id` and `root_key` with specific addresses, ensuring consistent identity management despite changes.
 
-### Key Management Issue:
-Currently, we have two separate keys: one for signing and another for encryption. Although we've resolved this in the prototype using Key Management Service (KMS), we believe there is a need to explore other solutions. Potential resolutions could involve the use of threshold cryptography or Multi-Party Computation (MPC). Additionally, by adopting Decentralized Identifiers (DID) to link the keys used for transactions and encryption, if we can verify control over the DID, it may enable simultaneous execution of both processes.  
 
-### Storage of Shared Keys
- In the prototype, permissioned users share cid, key, and file_info via the Push Protocol, currently stored on IPFS. As we move to develop a P2P network in the next phase, we will need to decide where to store these keys. One idea is to create a directory within the Personal Data Store (PDS) to store the shared keys, allowing users access to authorized spaces whenever they use these keys.
+### Issue: Single Key Writings to Tableland on the Server Side
+- **Problem**: Using a single key for server-side operations is a common vulnerability across many services.
+- **Potential Solutions**: Exploring advanced cryptographic solutions such as threshold cryptography, offered by projects like the Threshold network, can enhance security.
+- [Threshold network](https://threshold.network/)
 
- ### Encryption Algorithm:
- During the prototype implementation, we did not focus heavily on which encryption algorithms to use. However, considering that Monas will store sensitive information, we are looking to adopt algorithms with quantum resistance to enhance our security measures.
+### Issue: Key Management
+- **Problem**: We currently utilize separate keys for signing and encryption, managed through KMS.
+- **Ongoing Solutions**: We are assessing alternative approaches, including threshold cryptography and Multi-Party Computation (MPC). Incorporating Decentralized Identifiers (DID) might allow for simultaneous transactions and encryption if we can verify DID control.
+- [Threshold cryptography](https://en.wikipedia.org/wiki/Threshold_cryptosystem)
+- [About MPC](https://www.fireblocks.com/what-is-mpc/)
 
-### Optimization of Key Generation
-Keys are generated independently at each hierarchical layer and stored within the parent node's metadata to build cryptographic links. However, increasing the variety of keys to enhance flexibility raises issues about where to manage these keys. We are considering adopting the concept of deferred key derivation, where keys are generated on-the-fly and not stored. Designing a key derivation function could help manage keys at each hierarchical level effectively.
+### Issue: Storage of Shared Keys
+- **Problem**: In our prototype, keys are shared through the Push Protocol and stored on IPFS.
+- **Future Direction**: As we develop a P2P network, deciding on secure storage locations becomes crucial. We propose creating a dedicated directory within the PDS for this purpose, facilitating secure and accessible key management.  
 
-### Timing for State Management Transactions in PDS
-Currently, only the administrators of the PDS can write to it. As we progress to further phases and changes in state occur more frequently, updating every single change individually could become costly, which is not user-friendly from a UX perspective. One approach is to accumulate changes and update them on a scheduled basis to reduce execution frequency and lower costs. Additionally, delegating the task of building a Merkle tree and using Zero-Knowledge proofs to verify the correct execution can prove that the operations have not been tampered with.
+### Issue: Encryption Algorithm Choice
+- **Current Approach**: Our prototype does not prioritize specific encryption algorithms.
+- **Strategic Shift**: Considering the sensitive nature of stored data, we are evaluating the adoption of quantum-resistant algorithms to future-proof our security.  
+
+### Issue: Optimization of Key Generation
+- **Challenge**: Keys are currently generated at each hierarchical layer and stored in parent node metadata, which could limit flexibility.
+- **Proposed Solution**: We are exploring deferred key derivation strategies, where keys are generated as needed and not stored, simplifying key management.  
+- [Key derivation function wikipedia](https://en.wikipedia.org/wiki/Key_derivation_function)  
+- [A cryptographic key generation scheme for multilevel data security](https://www.sciencedirect.com/science/article/abs/pii/016740489090132D)
+
+### Issue: Timing for State Management Transactions in PDS
+- **Problem**: Frequent state updates are currently managed solely by PDS administrators, which can be inefficient and costly.
+- **Proposed UX Improvement**: Implementing scheduled updates could reduce transaction costs and improve user experience. Employing Merkle trees and Zero-Knowledge proofs could ensure that these operations are performed correctly and securely.
+
+By addressing these challenges, we aim to enhance the functionality, security, and usability of the Monas PDS, paving the way for a more robust and user-friendly platform.  
+
+## Next Phases of Development
+As we continue to evolve the Monas platform, our next major objectives are the construction of a Peer-to-Peer (P2P) network and the enhancement of writing capabilities. Currently, the architecture includes a Monas server, but our goal is to enable users to set up their own nodes and engage directly in end-to-end (E2E) encrypted communications as clients. This will facilitate a more decentralized and secure environment.
+
+Additionally, while currently only the PDS administrators can write to the datastore, it is essential to enable writing permissions for approved users. This feature is particularly important as we aim to develop a range of decentralized applications on Monas, such as distributed social networking services. It will also support features like shared key storage and collaborative editing, which require non-administrative users to write within the PDS.
+
+We will focus on defining and designing the access controls for these writing capabilities, ensuring that actions are properly sequenced and managed. This includes tackling the issues mentioned earlier, such as key management and the standardization of data formats.
+
+By implementing these enhancements, we aim to significantly expand the functionality and applicability of the Monas platform, making it a more versatile tool for decentralized data management.

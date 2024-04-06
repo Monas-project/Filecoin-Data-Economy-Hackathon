@@ -140,7 +140,7 @@ if not isDirectory:
     metadata.children.append(file_info)
 ```
 ### Re-encryption Process:
-The encryption process occurs when a user wants to deny access. When access is denied, the re-encryption process begins from a specific node selected for access denial via the re_encrypt_update function.
+The encryption process occurs when a user wants to deny access. When access is denied, the re-encryption process begins from a specific node selected for access denial via the `re_encrypt_update` function.
 ```py
 def re_encrypt(self, ipfs_client: Client) -> 'CryptreeNode':
     if self.is_leaf:
@@ -177,4 +177,4 @@ First, decryption is performed from a specific node down to the lowest layer, wh
 
 Upon reaching the lowest layer, the re_encrypt function generates a new file key for files and a new Subfolder Key for folders, performs encryption, saves it on IPFS, and continues the process up to the specific node.   
 
-Upon reaching the specific node, the process employs the update_all_nodes function to refresh the CID recorded in the children of the parent folder, similar to the procedure used when adding a folder. This updating process continues all the way up to the root node, ensuring that all changes are propagated through the hierarchy.
+Upon reaching the specific node, the process employs the `update_all_nodes` function to refresh the CID recorded in the children of the parent folder, similar to the procedure used when adding a folder. This updating process continues all the way up to the root node, ensuring that all changes are propagated through the hierarchy.

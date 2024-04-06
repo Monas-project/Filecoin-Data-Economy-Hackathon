@@ -1,4 +1,28 @@
 # Monas: Decentralized Personal Data Store  
+## Table of Contents
+- [Introduction](#introduction)
+- [Prototype Overview](#prototype-overview)
+- [System Configuration](#system-configuration)
+  - [Encryption and Decryption Functions](#encryption-and-decryption-functions)
+  - [State Management Function](#state-management-function)
+  - [Sharing Feature](#sharing-feature)
+- [Cryptree Algorithm Explanation](#cryptree-algorithm-explanation)
+  - [What is Cryptree?](#what-is-cryptree)
+- [Algorithm Description](#algorithm-description)
+  - [Metadata](#metadata)
+  - [Creation of the Root Node](#creation-of-the-root-node)
+  - [Adding a Folder](#adding-a-folder)
+  - [Uploading a File](#uploading-a-file)
+  - [Re-encryption Process](#re-encryption-process)
+- [Issues and Solutions](#issues-and-solutions)
+  - [Changing root_id with Node Addition and Re-encryption](#changing-root_id-with-node-addition-and-re-encryption)
+  - [Single Key Writings to Tableland on the Server Side](#single-key-writings-to-tableland-on-the-server-side)
+  - [Key Management](#key-management)
+  - [Storage of Shared Keys](#storage-of-shared-keys)
+  - [Encryption Algorithm Choice](#encryption-algorithm-choice)
+  - [Optimization of Key Generation](#optimization-of-key-generation)
+  - [Timing for State Management Transactions in PDS](#timing-for-state-management-transactions-in-pds)
+- [Next Phases of Development](#next-phases-of-development)
 
 ## Introduction 
 Monas is a **Decentralized Personal Data Store (PDS)** designed to empower Data controllers with data sovereignty. In the current landscape, technologies like the **Semantic Web**, **Self-Sovereign Identity**, and **Blockchain** are broadening the scope for data interoperability and user-centric data management. This system, utilizing the encrypted data structure of **Cryptree** and **Blockchain technology** to ensure data authenticity, enables users to manage their data while maintaining privacy and ensuring interoperability. Unlike traditional 'solid line data links', Monas proposes a new paradigm of 'dotted line data links', which directly reflect user intent. This approach allows Monas to create a space in cyberspace that protects both autonomy and privacy, offering users the flexibility to solidify these links at their discretion.  

@@ -15,7 +15,7 @@ Our prototype specifically focuses on enhancing the functionality of read access
 
 
 ## System configuration　　
-![system configuration](https://raw.githubusercontent.com/user/repo/branch/path/to/image.png)  
+![system configuration](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/d042e54f6fa8b611a47da9d62eff648b2af72572/images/System%20configuration%20diagram.png)  
 
 The prototype consists of **IPFS**, **Tableland**, **Push Protocol**, **Filecoin** and **Polygon**. The features we implemented in this project are as follows  
 
@@ -55,7 +55,7 @@ Cryptree is an encrypted data structure composed of keys and cryptographic links
 
 Paper link [here](https://ieeexplore.ieee.org/document/4032481)
 
-![cryptree algorithm]()  
+![cryptree algorithm](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/d042e54f6fa8b611a47da9d62eff648b2af72572/images/Algorithm.png)  
 
 The paper proposed five types of keys, but we have implemented using two types of keys: the Subfolder Key and the File Key. Unlike the method in the paper, where keys are generated from other keys, each key exists independently in our implementation. The reason we chose this method is that we believe it's worth dedicating separate time to the algorithm that generates keys from keys. Our current focus is on the implementation of Cryptree. We assume that even if we were to implement a process for generating keys from keys, the sequence of operations would largely remain unchanged. The reason for limiting it to two types of keys is due to the issues with key storage locations and the increased complexity. Our algorithm resolves the issue of key storage locations and presents an intuitively understandable algorithm.
 

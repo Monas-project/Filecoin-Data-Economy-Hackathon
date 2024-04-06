@@ -26,6 +26,7 @@ class Metadata(BaseModel):
 class CryptreeNodeModel(BaseModel):
     metadata: Metadata
     subfolder_key: bytes
+    file_data: Optional[bytes] = None
 
 class GenerateRootNodeRequest(BaseModel):
     name: str
@@ -36,20 +37,19 @@ class CreateNodeRequest(BaseModel):
     name: str
     owner_id: str
     parent_cid: str
-    subfolder_key: str = None  # 親ノードのサブフォルダキー。
-    file_data: Optional[str] = None
+    subfolder_key: str  # 親ノードのサブフォルダキー。
+    file_data: Optional[bytes] = None
 
 
 class FetchNodeRequest(BaseModel):
     cid: str
     subfolder_key: str
-    owner_id: str # このCIDのノードの所有者のアドレス
 
 class FetchNodeResponse(BaseModel):
     metadata: Metadata
     subfolder_key: str
     root_id: str
-    file_data: Optional[str] = None # ファイルの場合のみ含まれる
+    file_data: Optional[bytes] = None # ファイルの場合のみ含まれる
     children: List[CryptreeNodeModel] = []
 
 
@@ -57,3 +57,7 @@ class ReEncryptRequest(BaseModel):
     target_cid: str # Re-encryptするノードのCID
     parent_subfolder_key: str # Re-encryptするノードの親ノードのサブフォルダキー
     parent_cid: str # Re-encryptするノードの親ノードのCID
+
+class LoginRequest(BaseModel):
+    address: str
+    signature: str

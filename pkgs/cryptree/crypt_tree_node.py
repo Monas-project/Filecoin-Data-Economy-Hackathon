@@ -24,7 +24,7 @@ class CryptreeNode(CryptreeNodeModel):
 
     # ノードを作成する
     @classmethod
-    def create_node(cls, name: str, owner_id: str, isDirectory: bool, ipfs_client: Type[IpfsClient], parent: Optional['CryptreeNode'] = None, file_data: Optional[str] = None) -> 'CryptreeNode':
+    def create_node(cls, name: str, owner_id: str, isDirectory: bool, ipfs_client: Type[IpfsClient], parent: Optional['CryptreeNode'] = None, file_data: Optional[bytes] = None) -> 'CryptreeNode':
         # キー生成
         if parent is None:
             kms_client = Kms()
@@ -121,8 +121,8 @@ class CryptreeNode(CryptreeNodeModel):
     @classmethod
     def get_node(cls, cid: str, sk: str, ipfs_client: Type[IpfsClient]) -> 'CryptreeNode':
         enc_metadata = ipfs_client.cat(cid)
-        metadata_str = CryptreeNode.decrypt(sk, enc_metadata).decode()
-        metadata = json.loads(metadata_str)
+        metadata_bytes = CryptreeNode.decrypt(sk, enc_metadata)
+        metadata = json.loads(metadata_bytes)
         return cls(metadata=metadata, subfolder_key=sk, cid=cid)
 
     @staticmethod
@@ -178,9 +178,9 @@ class CryptreeNode(CryptreeNodeModel):
 
         if self.is_file:
             file_info = children[0]
-            file_data = CryptreeNode.decrypt(file_info.fk, ipfs_client.cat(file_info.cid)).decode()
+            file_data = CryptreeNode.decrypt(file_info.fk, ipfs_client.cat(file_info.cid))
             file_info.fk = Fernet.generate_key().decode()
-            enc_file_data = CryptreeNode.encrypt(file_info.fk, file_data.encode())
+            enc_file_data = CryptreeNode.encrypt(file_info.fk, file_data)
             file_info.cid = ipfs_client.add_bytes(enc_file_data)
             self.subfolder_key = Fernet.generate_key().decode()
             enc_metadata = self.encrypt_metadata()

@@ -1,16 +1,20 @@
-from fastapi import Depends, APIRouter, FastAPI, HTTPException, status, Body, Form
+from fastapi import Depends, APIRouter, FastAPI, HTTPException, status, Body, Form, Depends, HTTPException, Form, File, UploadFile
+from typing import Optional
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.middleware.cors import CORSMiddleware
 from crypt_tree_node import CryptreeNode
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
 from web3 import Web3
 from eth_account.messages import encode_defunct
 from tableland import Tableland
-from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest, FetchNodeResponse, ReEncryptRequest
+from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest, FetchNodeResponse, ReEncryptRequest, LoginRequest
 import os
 from dotenv import load_dotenv
 from fake_ipfs import FakeIPFS
 from ipfs_client import IpfsClient
+import base64
+
 
 # .envファイルの内容を読み込見込む
 load_dotenv()
@@ -34,6 +38,14 @@ SECRET_MESSAGE = os.environ['SECRET_MESSAGE']
 
 # トークンの受け取り先URLを指定してOAuth2PasswordBearerインスタンスを作成
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # http://localhost:3000 のみを許可
+    allow_credentials=True,
+    allow_methods=["*"],  # すべてのHTTPメソッドを許可
+    allow_headers=["*"],  # すべてのHTTPヘッダーを許可
+)
 
 def get_current_user(token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
@@ -66,8 +78,19 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 async def read_users_me(current_user: dict = Depends(get_current_user)):
     return current_user
 
+@router.post("/user/exists")
+async def user_exists(request: LoginRequest = Body(...)):
+    message = encode_defunct(text=SECRET_MESSAGE)
+    # 署名されたメッセージからアドレスを復元し、提供されたアドレスと比較
+    recovered_address = w3.eth.account.recover_message(message, signature=request.signature)
+    if recovered_address.lower() == request.address.lower():
+        user = Tableland.get(request.address)
+        return {"exists": user is not None}
+
 @router.post("/signup")
 async def signup(request: GenerateRootNodeRequest = Body(...)):
+    print('request:')
+    print(request)
     user = Tableland.get(request.owner_id);
     if user:
         raise HTTPException(status_code=400, detail="User already exists")
@@ -99,8 +122,10 @@ async def signup(request: GenerateRootNodeRequest = Body(...)):
         raise HTTPException(status_code=401, detail="Invalid signature or address")
 
 @router.post("/login")
-async def login(signature: str = Body(...), address: str = Body(...)):
+async def login(request: LoginRequest = Body(...)):
     message = encode_defunct(text=SECRET_MESSAGE)
+    address = request.address
+    signature = request.signature
     # 署名されたメッセージからアドレスを復元し、提供されたアドレスと比較
     recovered_address = w3.eth.account.recover_message(message, signature=signature)
     if recovered_address.lower() == address.lower():
@@ -115,24 +140,31 @@ async def login(signature: str = Body(...), address: str = Body(...)):
         return {
             "root_node": {
                 "metadata": node.metadata,
-                "subfolder_key": node.subfolder_key
+                "subfolder_key": node.subfolder_key,
+                "root_id": node.cid,
             },
             "access_token": access_token,
             "token_type": "bearer",
-            "root_id": root_id,
         }
     else:
         raise HTTPException(status_code=401, detail="Invalid signature or address")
 
 
 @router.post("/create")
-async def create(request: CreateNodeRequest = Body(...), current_user: dict = Depends(get_current_user)):
-    parent_cid = request.parent_cid
-    parent_subfolder_key = request.subfolder_key
+async def create(
+    name: str = Form(...),
+    owner_id: str = Form(...),
+    parent_cid: str = Form(...),
+    subfolder_key: Optional[str] = Form(None),
+    file_data: Optional[UploadFile] = File(None),
+    current_user: dict = Depends(get_current_user),
+):
+    parent_subfolder_key = subfolder_key
     current_node = CryptreeNode.get_node(parent_cid, parent_subfolder_key, ipfs_client)
-    file_data = request.file_data.encode() if request.file_data else None
+    # file_data = request.file_data.encode() if request.file_data else None
+    file_data = await file_data.read() if file_data else None
     try:
-        new_node = CryptreeNode.create_node(name=request.name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data, ipfs_client=ipfs_client)
+        new_node = CryptreeNode.create_node(name=name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data, ipfs_client=ipfs_client)
         root_id, _ = Tableland.get_root_info(current_user["address"]);
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -147,22 +179,29 @@ async def create(request: CreateNodeRequest = Body(...), current_user: dict = De
 async def fetch(request: FetchNodeRequest = Body(...), current_user: dict = Depends(get_current_user)) -> FetchNodeResponse:
     subfolder_key = request.subfolder_key
     cid = request.cid
-    address = request.owner_id
     node = CryptreeNode.get_node(cid, subfolder_key, ipfs_client)
     children = node.metadata.children
-    root_id, _ = Tableland.get_root_info(address)
+    root_id, _ = Tableland.get_root_info(node.metadata.owner_id)
     response = FetchNodeResponse(
         metadata=node.metadata,
         subfolder_key=node.subfolder_key,
         root_id=root_id,
     )
     # fileの場合、ファイルデータを復号
-    if len(children) == 1 and children[0].fk is not None:
-        enc_file_data = ipfs_client.cat(children[0].cid)
-        file_data = CryptreeNode.decrypt(children[0].fk, enc_file_data).decode()
-        response.file_data = file_data
-    elif len(children) > 0:
-        response.children = [CryptreeNode.get_node(child.cid, child.sk, ipfs_client) for child in children]
+    if len(children) > 0:
+        if len(children) == 1 and children[0].fk is not None:
+            enc_file_data = ipfs_client.cat(children[0].cid)
+            file_data = CryptreeNode.decrypt(children[0].fk, enc_file_data)
+            response.file_data = base64.b64encode(file_data).decode('utf-8')
+        else:
+            response.children = [CryptreeNode.get_node(child.cid, child.sk if child.sk is not None else child.fk, ipfs_client) for child in children]
+        for child in response.children:
+            if len(child.metadata.children) == 1 and child.metadata.children[0].fk is not None:
+                enc_file_data = ipfs_client.cat(child.metadata.children[0].cid)
+                # print(enc_file_data)
+                file_data = CryptreeNode.decrypt(child.metadata.children[0].fk, enc_file_data)
+                # print(file_data)
+                child.file_data = base64.b64encode(file_data).decode('utf-8')
     return response
 
 @router.post("/re-encrypt")

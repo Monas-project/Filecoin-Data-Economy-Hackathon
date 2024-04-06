@@ -8,6 +8,8 @@ import { useContext, useEffect, useState } from "react";
 import { filecoinCalibration } from "viem/chains";
 import { useAccount, useSignMessage } from "wagmi";
 import { ResponseData } from "./api/env";
+import { useSignUp } from "@/hooks/cryptree/useSignUp";
+import { useLogin } from "@/hooks/cryptree/useLogin";
 
 export default function Login() {
   const [env, setEnv] = useState<ResponseData>();
@@ -16,6 +18,8 @@ export default function Login() {
   const signer = useEthersSigner({ chainId: filecoinCalibration.id });
   const globalContext = useContext(GlobalContext);
   const { data: signMessageData, signMessageAsync } = useSignMessage();
+  const { data: signUpData } = useSignUp(account?.address!, signMessageData!);
+  const { data: loginData } = useLogin(account?.address!, signMessageData!);
 
   /**
    * authenticate
@@ -25,8 +29,6 @@ export default function Login() {
       globalContext.setLoading(true);
       // get .env values
       const envData = await getEnv();
-
-      // signMessage
       await signMessageAsync({ message: envData.SECRET_MESSAGE });
     } catch (err) {
       console.error("error:", err);
@@ -36,9 +38,13 @@ export default function Login() {
   };
 
   useEffect(() => {
-    console.log("messeage:", signMessageData);
-    // router.push("/my-box");
-  }, [signMessageData]);
+    console.log("signMessageData:", signMessageData);
+    if (signMessageData) {
+      if (signUpData || loginData) {
+        router.push("/my-box");
+      }
+    }
+  }, [signMessageData, signUpData, loginData]);
 
   return (
     <div className={`w-screen h-screen bg-HeroImage bg-cover text-N16`}>

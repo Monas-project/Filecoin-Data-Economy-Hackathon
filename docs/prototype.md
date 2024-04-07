@@ -30,6 +30,8 @@
 
 Monas is a **Decentralized Personal Data Store (PDS)** designed to empower Data controllers with data sovereignty.Under the current circumstances, state-of-the-art technologies like the **Semantic Web**, **Self-Sovereign Identity**, and **Blockchains** are possible to solve the issues of data interoperability and of user-centric data management. Monas enables users to manage their data while maintaining privacy and ensuring interoperability utilizing the cryptographic data structure of **Cryptree** and **Blockchain** technology to ensure data authenticity. Unlike traditional 'solid line data links', we proposes a new paradigm of 'dotted line data links', which directly reflect user intent. This approach allows Monas to create a space in cyberspace that protects both autonomy and privacy, offering users the flexibility to solidify these links at their discretion.
 
+More details:[Monas: Privacy, Data Interoperability, and Self-Sovereignty in Decentralized Personal Data Store v1.0.1](https://docs.google.com/document/d/1stQUrYfhbEcIilbOaRzCUfETRXiCWzo-E60MJ0CvnQg/edit?usp=sharing)
+
 ## Prototype Overview
 
 We've developed a prototype that embodies the principles of Monas. This prototype leverages three key components:

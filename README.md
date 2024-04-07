@@ -1,5 +1,5 @@
 # Monas Prototype
-
+![](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/eaa9d8d7f122ac51f435745cfd5016bf91ae7931/images/image.png)
 ## System Overview
 ![](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/52ede03fb7179dad41706f0b14469035c35bae16/images/System%20configuration%20diagram.png)  
 

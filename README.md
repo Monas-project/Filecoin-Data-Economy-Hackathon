@@ -4,18 +4,18 @@
 ![](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/52ede03fb7179dad41706f0b14469035c35bae16/images/System%20configuration%20diagram.png)  
 
 
-About Prototype: [here](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/main/docs/prototype.md#monas-decentralized-personal-data-store)   
-Document: [here](https://docs.google.com/document/d/1stQUrYfhbEcIilbOaRzCUfETRXiCWzo-E60MJ0CvnQg/edit?usp=sharing)    
-Slide: [here](https://docs.google.com/presentation/d/1CSDXeBKCRI5UfYq_DA_zj8i6FO6yLWsr/edit?usp=sharing&ouid=113727888198193846679&rtpof=true&sd=true)  
-## PushProtocol Signer Info(EThereum Sepolia)
+Learn more about the Prototype: [here](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/main/docs/prototype.md#monas-decentralized-personal-data-store)   
+Monas Docs: [here](../Filecoin-Data-Economy-Hackathon/docs/files/Monas-docs-v1.0.pdf)    
+Monas Slides: [here](../Filecoin-Data-Economy-Hackathon/docs/files/Monas-slides-v1.0.pdf)  
+## PushProtocol Signer Info(Ethereum Sepolia)
 
-[0x69d3E7219CE2259654EcBBFf9597936BaDF5Be52](https://sepolia.etherscan.io/address/0x69d3E7219CE2259654EcBBFf9597936BaDF5Be52)
+Address: [0x69d3E7219CE2259654EcBBFf9597936BaDF5Be52](https://sepolia.etherscan.io/address/0x69d3E7219CE2259654EcBBFf9597936BaDF5Be52)
 
 ## Deployed TableLand Contract(FileCoin Testnet)
 
-[0x0d5D749BEbB9521c9604727aB22091a924b4aDd4](https://calibration.filfox.info/en/address/0x0d5D749BEbB9521c9604727aB22091a924b4aDd4)
+Address: [0x0d5D749BEbB9521c9604727aB22091a924b4aDd4](https://calibration.filfox.info/en/address/0x0d5D749BEbB9521c9604727aB22091a924b4aDd4)
 
-## How to work
+## Usage
 
 - setup
 
@@ -154,11 +154,8 @@ Slide: [here](https://docs.google.com/presentation/d/1CSDXeBKCRI5UfYq_DA_zj8i6FO
 
 ## Screenshots
 ![](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/e08b4993d111993c1ef30dc5d993308b4d3feeef/images/page1.png)  
-![](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/e08b4993d111993c1ef30dc5d993308b4d3feeef/images/page2.png)  
-![](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/e08b4993d111993c1ef30dc5d993308b4d3feeef/images/page3.png)  
-![](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/e08b4993d111993c1ef30dc5d993308b4d3feeef/images/page4.png)  
 
-### Reference
+### References:
 
 1. [FEVM Quickstart](https://docs.filecoin.io/smart-contracts/developing-contracts/hardhat)
 2. [FileCoin Calibration - Explorer](https://calibration.filscan.io/en)

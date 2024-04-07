@@ -25,7 +25,7 @@
 - [Next Phases of Development](#next-phases-of-development)
 
 ## Introduction 
-Monas is a **Decentralized Personal Data Store (PDS)** designed to empower Data controllers with data sovereignty. In the current landscape, technologies like the **Semantic Web**, **Self-Sovereign Identity**, and **Blockchain** are broadening the scope for data interoperability and user-centric data management. This system, utilizing the encrypted data structure of **Cryptree** and **Blockchain technology** to ensure data authenticity, enables users to manage their data while maintaining privacy and ensuring interoperability. Unlike traditional 'solid line data links', Monas proposes a new paradigm of 'dotted line data links', which directly reflect user intent. This approach allows Monas to create a space in cyberspace that protects both autonomy and privacy, offering users the flexibility to solidify these links at their discretion.  
+Monas is a **Decentralized Personal Data Store (PDS)** designed to empower Data controllers with data sovereignty.Under the current circumstances, state-of-the-art technologies like the **Semantic Web**, **Self-Sovereign Identity**, and **Blockchains** are possible to solve the issues of data interoperability and of user-centric data management. Monas enables users to manage their data while maintaining privacy and ensuring interoperability utilizing the cryptographic data structure of **Cryptree** and **Blockchain** technology to ensure data authenticity. Unlike traditional 'solid line data links', we proposes a new paradigm of 'dotted line data links', which directly reflect user intent. This approach allows Monas to create a space in cyberspace that protects both autonomy and privacy, offering users the flexibility to solidify these links at their discretion.  
 
 ## Prototype Overview
 
@@ -35,7 +35,7 @@ We've developed a prototype that embodies the principles of Monas. This prototyp
 - **Cryptree**: A structure that provides intuitive access control, managed by Data controllers.
 - **Blockchain**: This serves as the backbone for our state management system, ensuring the authenticity and consistency of data.
 
-Our prototype specifically focuses on enhancing the functionality of read access control and the robust management of system state.
+Our prototype specifically focuses on enhancing the functionality of read access control and the robust management of state.
 
 
 ## System configuration　　
@@ -46,7 +46,7 @@ The prototype consists of **IPFS**, **Tableland**, **Push Protocol**, **Filecoin
 ### Encryption and decryption functions:
 When users create folders or upload files in Monas, this data is sent to the Monas Server. Here, processes such as metadata creation and addition, as well as the encryption, decryption, and re-encryption of metadata and files are performed. Once these data processes are completed, the data is stored on IPFS. More details are provided below.
 ### State Management Function:
-In Monas, state management of the PDS is conducted using Tableland and Filecoin, implemented in the useContract file.  
+State management of Monas PDS is conducted using **Tableland** and **Filecoin**, implemented in the useContract file.
 ```ts
 export type TableData = {
   id: number;
@@ -57,11 +57,11 @@ export type TableData = {
 For operation, click [here](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/main/pkgs/frontend/hooks/useContract.ts), and contract [here](pkgs/backend/contracts/FileInfo.sol)
 
 
-By saving the fileCid and rootId as File_info on Tableland, we implement the function to manage states. This feature is used to verify whether a file has been tampered with and whether it is in its most recent state.
+By saving the fileCid and rootId as File_info on Tableland, we implement the function to manage states. These functions enable to verify whether a file has been tampered with and whether it is in the latest state.
 
 ### Sharing Feature:
-Access-required information is transmitted to permitted users through the Push protocol. This is implemented in the [usePushProtocol](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/main/pkgs/frontend/hooks/usePushProtocol.ts).  
-To the permitted users, the location stored information such as the CID of the file or folder, the key required for decryption, and the File_info saved by the state management function are shared.
+Access-required information is transmitted to permitted users via the Push protocol. This is implemented in the [usePushProtocol](https://github.com/Monas-project/Filecoin-Data-Economy-Hackathon/blob/main/pkgs/frontend/hooks/usePushProtocol.ts).  
+When users are permitted, they are shared the location stored information such as the CID of the file or of the folder, the decryption key, and the File_info saved by the state management function.
 ```ts
 export const sendNotification = async (
   to: string,
@@ -75,7 +75,7 @@ Recipients can access and decrypt the shared item using the received CID and Key
 ## Cryptree Algorithm Explanation
 We will explain the Cryptree algorithm that we have implemented.
 ### What is Cryptree?
-Cryptree is an encrypted data structure composed of keys and cryptographic links. It can be understood as a directed graph, with keys as vertices and cryptographic links as edges. A cryptographic link means that when there is a key K1 from which another key K2 exists, everyone who possesses K1 can derive K2. In Cryptree, by connecting these cryptographic links from K2 to K1, we construct the encrypted data structure. In other words, if you know K1, you can recursively derive its descendant keys, Kn. Monas implements this as a core feature.  
+Cryptree is an encrypted data structure composed of keys and cryptographic links. It can be understood as a directed graph, with keys as vertices and cryptographic links as edges. A cryptographic link is a relationship where the existence of a key K2 is contingent on another key, K1, and allows everyone in possession of K1 to derive K2. The cryptographic data structure, Cryptree, is constructed by connecting these cryptographic links from K2 to K1. In other words, if you know K1, you can recursively derive its descendant keys, Kn. Monas implements this as a core feature.  
 
 Paper link [here](https://ieeexplore.ieee.org/document/4032481)
 

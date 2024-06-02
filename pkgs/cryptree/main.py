@@ -8,7 +8,7 @@ from jose import jwt, JWTError
 from web3 import Web3
 from eth_account.messages import encode_defunct
 from tableland import Tableland
-from model import GenerateRootNodeRequest, CreateNodeRequest, FetchNodeRequest, FetchNodeResponse, ReEncryptRequest, LoginRequest
+from model import GenerateRootNodeRequest, FetchNodeRequest, FetchNodeResponse, ReEncryptRequest, LoginRequest
 import os
 from dotenv import load_dotenv
 from fake_ipfs import FakeIPFS
@@ -89,8 +89,6 @@ async def user_exists(request: LoginRequest = Body(...)):
 
 @router.post("/signup")
 async def signup(request: GenerateRootNodeRequest = Body(...)):
-    print('request:')
-    print(request)
     user = Tableland.get(request.owner_id);
     if user:
         raise HTTPException(status_code=400, detail="User already exists")
@@ -167,6 +165,7 @@ async def create(
         new_node = CryptreeNode.create_node(name=name, owner_id=current_user["address"], isDirectory=(file_data is None), parent=current_node, file_data=file_data, ipfs_client=ipfs_client)
         root_id, _ = Tableland.get_root_info(current_user["address"]);
     except Exception as e:
+        print(e)
         raise HTTPException(status_code=400, detail=str(e))
     return {
         "metadata": new_node.metadata,
@@ -198,9 +197,7 @@ async def fetch(request: FetchNodeRequest = Body(...), current_user: dict = Depe
         for child in response.children:
             if len(child.metadata.children) == 1 and child.metadata.children[0].fk is not None:
                 enc_file_data = ipfs_client.cat(child.metadata.children[0].cid)
-                # print(enc_file_data)
                 file_data = CryptreeNode.decrypt(child.metadata.children[0].fk, enc_file_data)
-                # print(file_data)
                 child.file_data = base64.b64encode(file_data).decode('utf-8')
     return response
 

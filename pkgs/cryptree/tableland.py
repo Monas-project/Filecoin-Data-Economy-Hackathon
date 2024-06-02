@@ -12,10 +12,10 @@ class Tableland:
     infura_base_url = os.getenv('INFURA_BASE_URL')
     private_key = os.getenv('PRIVATE_KEY')
     table_contract_address = os.getenv('TABLE_CONTRACT_ADDRESS')
-    tableland_url = 'https://testnets.tableland.network/api/v1/query'
-    address_column = "user_address"
-    table_id = 8603
-    chain_id = 80001
+    tableland_url = os.getenv('TABLELAND_URL')
+    address_column = os.getenv('ADDRESS_COLUMN_NAME')
+    table_id = int(os.getenv('TABLE_ID'))
+    chain_id = int(os.getenv('CHAIN_ID'))
     root_table_name = f"users_{chain_id}_{table_id}"
 
     if not (infura_project_id and infura_base_url and private_key and table_contract_address):
@@ -69,17 +69,22 @@ class Tableland:
 
     @classmethod
     def build_transaction(cls, contract, statement, nonce):
-        transaction = contract.functions.mutate(
-            cls.admin_account,
-            cls.table_id,
-            statement
-        ).build_transaction({
-            'chainId': cls.chain_id,
-            'gas': 2000000,
-            'maxPriorityFeePerGas': cls.web3.to_wei('2', 'gwei'),
-            'maxFeePerGas': cls.web3.to_wei('50', 'gwei'),
-            'nonce': nonce,
-        })
+        function = contract.functions.mutate(
+                cls.admin_account,
+                cls.table_id,
+                statement,
+            )
+        # TODO: gasの値を適切に設定する
+        # gas = function.estimate_gas()
+        gas = 2000000
+        transaction = function.build_transaction({
+                'chainId': int(cls.chain_id),
+                'gas': gas,
+                'maxPriorityFeePerGas': cls.web3.to_wei('2', 'gwei'),
+                'maxFeePerGas': cls.web3.to_wei('50', 'gwei'),
+                'nonce': nonce,
+            },
+        )
         return transaction
     
     @classmethod

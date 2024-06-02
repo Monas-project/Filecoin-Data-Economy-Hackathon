@@ -7,12 +7,22 @@ load_dotenv()
 
 class Kms:
     def __init__(self, region_name='ap-northeast-1', access_key=os.getenv('AWS_ACCESS_KEY_ID'), secret_key=os.getenv('AWS_SECRET_ACCESS_KEY')):
-        self.client = boto3.client(
-            'kms',
-            region_name=region_name,
-            aws_access_key_id=access_key,
-            aws_secret_access_key=secret_key,
-        )
+        if os.getenv('ENV') != 'prod':
+            print("Local環境で実行しています。")
+            self.client = boto3.client(
+                'kms',
+                endpoint_url='http://localstack:4566',
+                region_name=region_name,
+                aws_access_key_id='test',  # ダミーのアクセスキー
+                aws_secret_access_key='test'  # ダミーのシークレットキー
+            )
+        else:
+            self.client = boto3.client(
+                'kms',
+                region_name=region_name,
+                aws_access_key_id=access_key,
+                aws_secret_access_key=secret_key,
+            )
 
     def create_key(self, description, key_usage="ENCRYPT_DECRYPT", customer_master_spec="SYMMETRIC_DEFAULT")-> str:
         response = self.client.create_key(

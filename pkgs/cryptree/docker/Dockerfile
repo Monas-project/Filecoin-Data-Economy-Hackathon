@@ -15,7 +15,7 @@ RUN apt-get update && apt-get install -y netcat-openbsd
 COPY . .
 
 # 新しい手順: 健全性チェックスクリプトを追加
-COPY check_ipfs.sh /usr/local/bin/check_ipfs.sh
+COPY docker/check_ipfs.sh /usr/local/bin/check_ipfs.sh
 RUN chmod +x /usr/local/bin/check_ipfs.sh
 
 # アプリケーションを実行

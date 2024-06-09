@@ -74,6 +74,10 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
+@router.get("/hello")
+async def hello():
+    return {"message": "Hello, World! This is Cryptree API."}
+
 @router.post("/users/me")
 async def read_users_me(current_user: dict = Depends(get_current_user)):
     return current_user

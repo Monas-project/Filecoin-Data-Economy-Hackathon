@@ -538,10 +538,10 @@
   resolved "https://registry.npmjs.org/@fastify/busboy/-/busboy-2.1.0.tgz"
   integrity sha512-+KpH+QxZU7O4675t3mnkQKcZZg56u+K/Ct2K+N2AZYNVK8kyeo/bI18tI8aPm3tvNNRyTWfj6s5tnGNlcbQRsA==
 
-"@fluentui/react-icons@^2.0.232":
-  version "2.0.232"
-  resolved "https://registry.npmjs.org/@fluentui/react-icons/-/react-icons-2.0.232.tgz"
-  integrity sha512-v2KKdRx68Pkz8FPQsOxvD8X7u7cCZ9/dodP/KdycaGY2FKEjAdiSzPboHfTLqkKhvrLr8Zgfs3gSDWDOf7au3A==
+"@fluentui/react-icons@^2.0.242":
+  version "2.0.242"
+  resolved "https://registry.yarnpkg.com/@fluentui/react-icons/-/react-icons-2.0.242.tgz#aa4ed60dd4686b9a9efabcc494a2244e4af9e796"
+  integrity sha512-OtVYVcXWuMrqTBRie4eNwPH56mJJq/pmdPhQCQcLFOnupUyXlnlCRnbJYXd+LDEWga6CCwfqZxI6NiPxpbg08Q==
   dependencies:
     "@griffel/react" "^1.0.0"
     tslib "^2.1.0"
@@ -3895,6 +3895,11 @@ doctrine@^3.0.0:
 dotenv@^16.3.1, dotenv@^16.4.1:
   version "16.4.5"
   resolved "https://registry.npmjs.org/dotenv/-/dotenv-16.4.5.tgz"
+  integrity sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==
+
+dotenv@^16.4.5:
+  version "16.4.5"
+  resolved "https://registry.yarnpkg.com/dotenv/-/dotenv-16.4.5.tgz#cdd3b3b604cb327e286b4762e13502f717cb099f"
   integrity sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==
 
 duplexify@^4.1.2:

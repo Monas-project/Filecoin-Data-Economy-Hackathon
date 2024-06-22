@@ -1,8 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Display:wght@100..900&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss/base";
+@import "tailwindcss/components";
+@import "tailwindcss/utilities";
 
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Display:wght@100..900&display=swap');
 
@@ -31,3 +31,454 @@ body {
     rgb(var(--background-start-rgb));
 }
 */
+@layer base {
+  :root {
+    --color-P10: 8, 1, 2;
+    --color-P20: 44, 11, 21;
+    --color-P30: 76, 7, 34;
+    --color-P40: 101, 1, 44;
+    --color-P50: 123, 0, 55;
+    --color-P60: 146, 0, 67;
+    --color-P70: 170, 0, 79;
+    --color-P80: 194, 1, 91;
+    --color-P90: 215, 23, 104;
+    --color-P100: 235, 43, 117;
+    --color-P110: 253, 62, 131;
+    --color-P120: 255, 98, 146;
+    --color-P130: 255, 128, 162;
+    --color-P140: 255, 154, 179;
+    --color-P150: 255, 178, 195;
+    --color-P160: 255, 201, 212;
+    --color-P170: 255, 217, 225;
+    --color-P180: 255, 235, 239;
+
+    --color-S10: 5, 2, 3;
+    --color-S20: 34, 18, 24;
+    --color-S30: 57, 28, 38;
+    --color-S40: 75, 36, 50;
+    --color-S50: 93, 45, 63;
+    --color-S60: 111, 55, 76;
+    --color-S70: 128, 66, 89;
+    --color-S80: 145, 78, 102;
+    --color-S90: 161, 91, 116;
+    --color-S100: 176, 105, 130;
+    --color-S110: 191, 119, 144;
+    --color-S120: 204, 135, 158;
+    --color-S130: 216, 151, 173;
+    --color-S140: 227, 168, 187;
+    --color-S150: 236, 186, 202;
+    --color-S160: 244, 205, 217;
+    --color-S170: 252, 215, 226;
+    --color-S180: 255, 232, 239;
+
+    --color-T10: 4, 3, 1;
+    --color-T20: 29, 24, 13;
+    --color-T30: 48, 38, 20;
+    --color-T40: 62, 50, 24;
+    --color-T50: 77, 61, 28;
+    --color-T60: 92, 73, 31;
+    --color-T70: 108, 86, 35;
+    --color-T80: 125, 98, 39;
+    --color-T90: 141, 111, 42;
+    --color-T100: 158, 125, 46;
+    --color-T110: 176, 138, 49;
+    --color-T120: 193, 152, 52;
+    --color-T130: 211, 166, 56;
+    --color-T140: 229, 180, 59;
+    --color-T150: 248, 194, 62;
+    --color-T160: 255, 212, 121;
+    --color-T170: 255, 221, 158;
+    --color-T180: 255, 239, 212;
+
+    --color-E10: 7, 2, 0;
+    --color-E20: 41, 15, 0;
+    --color-E30: 72, 18, 0;
+    --color-E40: 98, 15, 0;
+    --color-E50: 126, 1, 0;
+    --color-E60: 150, 0, 9;
+    --color-E70: 174, 0, 17;
+    --color-E80: 198, 0, 26;
+    --color-E90: 223, 0, 36;
+    --color-E100: 244, 30, 51;
+    --color-E110: 255, 66, 72;
+    --color-E120: 255, 103, 100;
+    --color-E130: 255, 132, 127;
+    --color-E140: 255, 157, 152;
+    --color-E150: 255, 180, 176;
+    --color-E160: 255, 202, 199;
+    --color-E170: 255, 216, 214;
+    --color-E180: 255, 236, 235;
+
+    --color-N0: 0, 0, 0;
+    --color-N2: 4, 4, 6;
+    --color-N4: 9, 9, 12;
+    --color-N6: 13, 13, 17;
+    --color-N8: 19, 19, 22;
+    --color-N10: 24, 24, 27;
+    --color-N12: 30, 30, 32;
+    --color-N14: 36, 36, 37;
+    --color-N16: 40, 40, 42;
+    --color-N18: 46, 45, 47;
+    --color-N20: 51, 50, 52;
+    --color-N22: 56, 55, 57;
+    --color-N24: 60, 59, 61;
+    --color-N26: 66, 65, 68;
+    --color-N28: 73, 71, 74;
+    --color-N30: 77, 76, 77;
+    --color-N32: 81, 81, 82;
+    --color-N34: 85, 85, 87;
+    --color-N36: 91, 91, 93;
+    --color-N38: 96, 95, 99;
+    --color-N40: 101, 100, 104;
+    --color-N42: 106, 105, 110;
+    --color-N44: 112, 111, 114;
+    --color-N46: 117, 116, 118;
+    --color-N48: 122, 121, 124;
+    --color-N50: 126, 125, 128;
+    --color-N52: 132, 131, 134;
+    --color-N54: 137, 137, 139;
+    --color-N56: 142, 142, 144;
+    --color-N58: 148, 147, 149;
+    --color-N60: 153, 152, 155;
+    --color-N62: 158, 157, 159;
+    --color-N64: 162, 161, 165;
+    --color-N66: 169, 168, 171;
+    --color-N68: 173, 172, 175;
+    --color-N70: 178, 178, 179;
+    --color-N72: 184, 183, 185;
+    --color-N74: 189, 188, 189;
+    --color-N76: 194, 193, 195;
+    --color-N78: 199, 198, 200;
+    --color-N80: 204, 203, 205;
+    --color-N82: 209, 208, 210;
+    --color-N84: 214, 213, 215;
+    --color-N86: 219, 218, 220;
+    --color-N88: 224, 223, 225;
+    --color-N90: 229, 229, 230;
+    --color-N92: 234, 234, 235;
+    --color-N94: 239, 239, 240;
+    --color-N96: 244, 244, 245;
+    --color-N98: 250, 250, 250;
+    --color-N100: 255, 255, 255;
+
+    --color-NV10: 3, 2, 3;
+    --color-NV20: 23, 22, 25;
+    --color-NV30: 37, 35, 41;
+    --color-NV40: 48, 47, 54;
+    --color-NV50: 61, 58, 68;
+    --color-NV60: 73, 71, 82;
+    --color-NV70: 86, 83, 97;
+    --color-NV80: 100, 96, 112;
+    --color-NV90: 113, 110, 127;
+    --color-NV100: 127, 123, 142;
+    --color-NV110: 142, 137, 158;
+    --color-NV120: 156, 151, 173;
+    --color-NV130: 171, 166, 189;
+    --color-NV140: 186, 180, 204;
+    --color-NV150: 201, 195, 220;
+    --color-NV160: 216, 211, 236;
+    --color-NV170: 226, 223, 240;
+    --color-NV180: 240, 237, 250;
+
+
+    --Neutral-Background-1-Rest: var(--color-N96);
+    --Neutral-Background-1-Hover: var(--color-N90);
+    --Neutral-Background-1-Pressed: var(--color-N78);
+    --Neutral-Background-1-Selected: var(--color-N84);
+
+    --Neutral-Background-2-Rest: var(--color-N92);
+    --Neutral-Background-2-Hover: var(--color-N86);
+    --Neutral-Background-2-Pressed: var(--color-N74);
+    --Neutral-Background-2-Selected: var(--color-N80);
+
+    --Neutral-Background-3-Rest: var(--color-N88);
+    --Neutral-Background-3-Hover: var(--color-N82);
+    --Neutral-Background-3-Pressed: var(--color-N70);
+    --Neutral-Background-3-Selected: var(--color-N76);
+
+    --Neutral-Background-4-Rest: var(--color-N84);
+    --Neutral-Background-4-Hover: var(--color-N78);
+    --Neutral-Background-4-Pressed: var(--color-N66);
+    --Neutral-Background-4-Selected: var(--color-N72);
+
+    --Neutral-Background-5-Rest: var(--color-N80);
+    --Neutral-Background-5-Hover: var(--color-N74);
+    --Neutral-Background-5-Pressed: var(--color-N62);
+    --Neutral-Background-5-Selected: var(--color-N68);
+
+    --Neutral-Background-Disabled-1-Rest: var(--color-N76), 0.36;
+    --Neutral-Background-Disabled-2-Rest: var(--color-N96), 0.4;
+
+    --Neutral-Background-Subtle-Rest: transparent;
+    --Neutral-Background-Subtle-Hover: var(--color-N26), 0.08;
+    --Neutral-Background-Subtle-Pressed: var(--color-N26), 0.24;
+    --Neutral-Background-Subtle-Selected: var(--color-N26), 0.16;
+
+    --Neutral-Background-Overlay-Rest: var(--color-N10), 0.64;
+
+
+    --Neutral-Foreground-1-Rest: var(--color-N4);
+    --Neutral-Foreground-1-Hover: var(--color-N4);
+    --Neutral-Foreground-1-Pressed: var(--color-N4);
+    --Neutral-Foreground-1-Selected: var(--color-N4);
+
+    --Neutral-Foreground-2-Rest: var(--color-N12);
+    --Neutral-Foreground-2-Hover: var(--color-N12);
+    --Neutral-Foreground-2-Pressed: var(--color-N12);
+    --Neutral-Foreground-2-Selected: var(--color-N12);
+
+    --Neutral-Foreground-3-Rest: var(--color-N20);
+    --Neutral-Foreground-3-Hover: var(--color-N20);
+    --Neutral-Foreground-3-Pressed: var(--color-N20);
+    --Neutral-Foreground-3-Selected: var(--color-N20);
+
+    --Neutral-Foreground-4-Rest: var(--color-N28);
+    --Neutral-Foreground-4-Hover: var(--color-N28);
+    --Neutral-Foreground-4-Pressed: var(--color-N28);
+    --Neutral-Foreground-4-Selected: var(--color-N28);
+
+    --Neutral-Foreground-5-Rest: var(--color-N36);
+    --Neutral-Foreground-5-Hover: var(--color-N36);
+    --Neutral-Foreground-5-Pressed: var(--color-N36);
+    --Neutral-Foreground-5-Selected: var(--color-N36);
+
+    --Neutral-Foreground-Disabled-Rest: var(--color-N4), 0.32;
+    --Neutral-Foreground-Disabled-Variant: var(--color-NV60), 0.4;
+    --Neutral-Foreground-Disabled-onPrimary-Rest: var(--color-N76);
+    --Neutral-Foreground-Disabled-onPrimary-Variant: var(--color-NV140);
+
+    --Neutral-Foreground-Variant-Rest: var(--color-NV60);
+    --Neutral-Foreground-Variant-Hover: var(--color-NV60);
+    --Neutral-Foreground-Variant-Pressed: var(--color-NV60);
+    --Neutral-Foreground-Variant-Selected: var(--color-NV60);
+
+    --Neutral-Foreground-OnPrimary-Rest: var(--color-N96);
+    --Neutral-Foreground-OnPrimary-Variant: var(--color-NV180);
+
+
+    --Neutral-Stroke-1-Rest: var(--color-N86);
+    --Neutral-Stroke-1-Hover: var(--color-N78);
+    --Neutral-Stroke-1-Pressed: var(--color-N62);
+    --Neutral-Stroke-1-Selected: var(--color-N70);
+
+    --Neutral-Stroke-2-Rest: var(--color-N54);
+    --Neutral-Stroke-2-Hover: var(--color-N46);
+    --Neutral-Stroke-2-Pressed: var(--color-N30);
+    --Neutral-Stroke-2-Selected: var(--color-N38);
+
+    --Neutral-Stroke-Accessible-Rest: var(--color-N44);
+    --Neutral-Stroke-Accessible-Hover: var(--color-N38);
+    --Neutral-Stroke-Accessible-Pressed: var(--color-N26);
+    --Neutral-Stroke-Accessible-Selected: var(--color-N32);
+
+    --Neutral-Stroke-Disabled-Rest: var(--color-N70), 0.38;
+
+
+    --Primary-Background-1-Rest: var(--color-P90);
+    --Primary-Background-1-Hover: var(--color-P80);
+    --Primary-Background-1-Pressed: var(--color-P60);
+    --Primary-Background-1-Selected: var(--color-P70);
+
+    --Primary-Background-2-Rest: var(--color-P100);
+    --Primary-Background-2-Hover: var(--color-P90);
+    --Primary-Background-2-Pressed: var(--color-P70);
+    --Primary-Background-2-Selected: var(--color-P80);
+
+    --Primary-Background-Disabled-Rest: var(--color-S80);
+
+    --Primary-Background-Compound-Rest: var(--color-P90);
+    --Primary-Background-Compound-Hover: var(--color-P80);
+    --Primary-Background-Compound-Pressed: var(--color-P60);
+    --Primary-Background-Compound-Selected: var(--color-P70);
+
+    --Primary-Background-Subtle-Rest: transparent;
+    --Primary-Background-Subtle-Hover: var(--color-S90), 0.08;
+    --Primary-Background-Subtle-Pressed: var(--color-S90), 0.24;
+    --Primary-Background-Subtle-Selected: var(--color-S90), 0.16;
+
+
+    --Primary-Foreground-1-Rest: var(--color-P90);
+
+    --Primary-Foreground-Disabled-Rest: var(--color-S80);
+    --Primary-Foreground-Disabled-Variant: var(--color-S90);
+
+    --Primary-Foreground-Link-Rest: var(--color-P80);
+    --Primary-Foreground-Link-Hover: var(--color-P70);
+    --Primary-Foreground-Link-Pressed: var(--color-P50);
+    --Primary-Foreground-Link-Selected: var(--color-P60);
+
+    --Primary-Foreground-Compound-Rest: var(--color-P90);
+    --Primary-Foreground-Compound-Hover: var(--color-P80);
+    --Primary-Foreground-Compound-Pressed: var(--color-P60);
+    --Primary-Foreground-Compound-Selected: var(--color-P70);
+
+
+    --Primary-Stroke-1-Rest: var(--color-P90);
+
+    --Primary-Stroke-Disabled-Rest: var(--color-S80);
+    --Primary-Stroke-Disabled-Variant: var(--color-S90);
+
+    --Primary-Stroke-Compound-Rest: var(--color-P90);
+    --Primary-Stroke-Compound-Hover: var(--color-P80);
+    --Primary-Stroke-Compound-Pressed: var(--color-P60);
+    --Primary-Stroke-Compound-Selected: var(--color-P70);
+
+
+    --Status-Danger-Background-1-Rest: var(--color-E160);
+    --Status-Danger-Background-2-Rest: var(--color-E170);
+    --Status-Danger-Foreground-1-Rest: var(--color-E90);
+    --Status-Danger-Stroke-1-Rest: var(--color-E90);
+  }
+
+
+  .dark {
+    --Neutral-Background-1-Rest: var(--color-N26);
+    --Neutral-Background-1-Hover: var(--color-N32);
+    --Neutral-Background-1-Pressed: var(--color-N44);
+    --Neutral-Background-1-Selected: var(--color-N38);
+
+    --Neutral-Background-2-Rest: var(--color-N22);
+    --Neutral-Background-2-Hover: var(--color-N28);
+    --Neutral-Background-2-Pressed: var(--color-N40);
+    --Neutral-Background-2-Selected: var(--color-N34);
+
+    --Neutral-Background-3-Rest: var(--color-N18);
+    --Neutral-Background-3-Hover: var(--color-N24);
+    --Neutral-Background-3-Pressed: var(--color-N36);
+    --Neutral-Background-3-Selected: var(--color-N30);
+
+    --Neutral-Background-4-Rest: var(--color-N14);
+    --Neutral-Background-4-Hover: var(--color-N20);
+    --Neutral-Background-4-Pressed: var(--color-N32);
+    --Neutral-Background-4-Selected: var(--color-N26);
+
+    --Neutral-Background-5-Rest: var(--color-N10);
+    --Neutral-Background-5-Hover: var(--color-N16);
+    --Neutral-Background-5-Pressed: var(--color-N28);
+    --Neutral-Background-5-Selected: var(--color-N22);
+
+    --Neutral-Background-Disabled-1-Rest: var(--color-N8), 0.36;
+    --Neutral-Background-Disabled-2-Rest: var(--color-N26), 0.4;
+
+    --Neutral-Background-Subtle-Rest: transparent;
+    --Neutral-Background-Subtle-Hover: var(--color-N56), 0.08;
+    --Neutral-Background-Subtle-Pressed: var(--color-N56), 0.24;
+    --Neutral-Background-Subtle-Selected: var(--color-N56), 0.16;
+
+    --Neutral-Background-Overlay-Rest: var(--color-N10), 0.72;
+
+
+    --Neutral-Foreground-1-Rest: var(--color-N96);
+    --Neutral-Foreground-1-Hover: var(--color-N96);
+    --Neutral-Foreground-1-Pressed: var(--color-N96);
+    --Neutral-Foreground-1-Selected: var(--color-N96);
+
+    --Neutral-Foreground-2-Rest: var(--color-N86);
+    --Neutral-Foreground-2-Hover: var(--color-N86);
+    --Neutral-Foreground-2-Pressed: var(--color-N86);
+    --Neutral-Foreground-2-Selected: var(--color-N86);
+
+    --Neutral-Foreground-3-Rest: var(--color-N76);
+    --Neutral-Foreground-3-Hover: var(--color-N76);
+    --Neutral-Foreground-3-Pressed: var(--color-N76);
+    --Neutral-Foreground-3-Selected: var(--color-N76);
+
+    --Neutral-Foreground-4-Rest: var(--color-N66);
+    --Neutral-Foreground-4-Hover: var(--color-N66);
+    --Neutral-Foreground-4-Pressed: var(--color-N66);
+    --Neutral-Foreground-4-Selected: var(--color-N66);
+
+    --Neutral-Foreground-5-Rest: var(--color-N56);
+    --Neutral-Foreground-5-Hover: var(--color-N56);
+    --Neutral-Foreground-5-Pressed: var(--color-N56);
+    --Neutral-Foreground-5-Selected: var(--color-N56);
+
+    --Neutral-Foreground-Disabled-Rest: var(--color-N96), 0.24;
+    --Neutral-Foreground-Disabled-Variant: var(--color-NV120), 0.4;
+    --Neutral-Foreground-Disabled-onPrimary-Rest: var(--color-N24);
+    --Neutral-Foreground-Disabled-onPrimary-Variant: var(--color-NV50);
+
+    --Neutral-Foreground-Variant-Rest: var(--color-NV170);
+    --Neutral-Foreground-Variant-Hover: var(--color-NV170);
+    --Neutral-Foreground-Variant-Pressed: var(--color-NV170);
+    --Neutral-Foreground-Variant-Selected: var(--color-NV170);
+
+    --Neutral-Foreground-OnPrimary-Rest: var(--color-N96);
+    --Neutral-Foreground-OnPrimary-Variant: var(--color-NV180);
+
+
+    --Neutral-Stroke-1-Rest: var(--color-N32);
+    --Neutral-Stroke-1-Hover: var(--color-N34);
+    --Neutral-Stroke-1-Pressed: var(--color-N38);
+    --Neutral-Stroke-1-Selected: var(--color-N36);
+
+    --Neutral-Stroke-2-Rest: var(--color-N64);
+    --Neutral-Stroke-2-Hover: var(--color-N66);
+    --Neutral-Stroke-2-Pressed: var(--color-N70);
+    --Neutral-Stroke-2-Selected: var(--color-N68);
+
+    --Neutral-Stroke-Accessible-Rest: var(--color-N60);
+    --Neutral-Stroke-Accessible-Hover: var(--color-N66);
+    --Neutral-Stroke-Accessible-Pressed: var(--color-N78);
+    --Neutral-Stroke-Accessible-Selected: var(--color-N72);
+
+    --Neutral-Stroke-Disabled-Rest: var(--color-N36), 0.38;
+
+
+    --Primary-Background-1-Rest: var(--color-P90);
+    --Primary-Background-1-Hover: var(--color-P80);
+    --Primary-Background-1-Pressed: var(--color-P60);
+    --Primary-Background-1-Selected: var(--color-P70);
+
+    --Primary-Background-2-Rest: var(--color-P100);
+    --Primary-Background-2-Hover: var(--color-P90);
+    --Primary-Background-2-Pressed: var(--color-P70);
+    --Primary-Background-2-Selected: var(--color-P80);
+
+    --Primary-Background-Disabled-Rest: var(--color-S110);
+
+    --Primary-Background-Compound-Rest: var(--color-P90);
+    --Primary-Background-Compound-Hover: var(--color-P80);
+    --Primary-Background-Compound-Pressed: var(--color-P60);
+    --Primary-Background-Compound-Selected: var(--color-P70);
+
+    --Primary-Background-Subtle-Rest: transparent;
+    --Primary-Background-Subtle-Hover: var(--color-S100), 0.12;
+    --Primary-Background-Subtle-Pressed: var(--color-S100), 0.24;
+    --Primary-Background-Subtle-Selected: var(--color-S100), 0.18;
+
+
+    --Primary-Foreground-1-Rest: var(--color-P90);
+
+    --Primary-Foreground-Disabled-Rest: var(--color-S110);
+    --Primary-Foreground-Disabled-Variant: var(--color-S100);
+
+    --Primary-Foreground-Link-Rest: var(--color-P130);
+    --Primary-Foreground-Link-Hover: var(--color-P120);
+    --Primary-Foreground-Link-Pressed: var(--color-P100);
+    --Primary-Foreground-Link-Selected: var(--color-P110);
+
+    --Primary-Foreground-Compound-Rest: var(--color-P90);
+    --Primary-Foreground-Compound-Hover: var(--color-P80);
+    --Primary-Foreground-Compound-Pressed: var(--color-P60);
+    --Primary-Foreground-Compound-Selected: var(--color-P70);
+
+
+    --Primary-Stroke-1-Rest: var(--color-P90);
+
+    --Primary-Stroke-Disabled-Rest: var(--color-S110);
+    --Primary-Stroke-Disabled-Variant: var(--color-S100);
+
+    --Primary-Stroke-Compound-Rest: var(--color-P90);
+    --Primary-Stroke-Compound-Hover: var(--color-P80);
+    --Primary-Stroke-Compound-Pressed: var(--color-P60);
+    --Primary-Stroke-Compound-Selected: var(--color-P70);
+
+
+    --Status-Danger-Background-1-Rest: var(--color-E30);
+    --Status-Danger-Background-2-Rest: var(--color-E40);
+    --Status-Danger-Foreground-1-Rest: var(--color-E100);
+    --Status-Danger-Stroke-1-Rest: var(--color-E100);
+  }
+
+}

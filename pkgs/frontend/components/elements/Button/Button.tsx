@@ -1,65 +1,69 @@
 import { ChevronDown16Regular, Circle20Regular } from '@fluentui/react-icons';
 import React, { FC, MouseEventHandler, ReactNode } from 'react';
 
-type ButtonProps = {
+export type ButtonProps = {
     onClick?: MouseEventHandler<HTMLButtonElement>;
-    size?: 'medium' | 'large' | 'larger';
     layout?: 'neutral' | 'outline' | 'subtle' | 'transparent' | 'primary';
-    headerVisible?: boolean;
-    headerIcon?: ReactNode;
+    disabled?: boolean;
+
     labelVisible?: boolean;
-    fotterVisible?: boolean;
-    children?: ReactNode;
+    label?: string;
+
+    headerVisible?: boolean; // 左アイコンの表示/非表示
+    headerIcon?: ReactNode;
+    fotterVisible?: boolean; // 右アイコンの表示/非表示
+    footerIcon?: ReactNode;
 }
 
-const Button: FC<ButtonProps> = ({ onClick, size = 'medium', layout = 'neutral', headerVisible = false, headerIcon=<Circle20Regular />, labelVisible = true, fotterVisible = false, children }) => {
-    const buttonSize = {
-        medium: 'p-0.5',
-        large: 'space-x-0.5 p-1',
-        larger: 'space-x-0.5 p-1.5',
+const Button: FC<ButtonProps> =
+    ({
+        onClick,
+        layout = 'neutral',
+        disabled = false,
+
+        labelVisible = true,
+        label = 'Label',
+
+        headerVisible = false,
+        headerIcon = <Circle20Regular />,
+        fotterVisible = false,
+        footerIcon = <ChevronDown16Regular />,
+    }) => {
+
+        const disabledLayout = {
+            neutral: 'bg-Neutral-Background-Disabled-1-Rest text-Neutral-Foreground-Disabled-Rest outline outline-1 outline-Neutral-Stroke-Disabled-Rest',
+            outline: 'text-Neutral-Foreground-Disabled-Rest outline outline-1 outline-Neutral-Stroke-Disabled-Rest',
+            subtle: 'text-Neutral-Foreground-Disabled-Rest',
+            transparent: 'text-Primary-Foreground-Disabled-Rest outline outline-1 Primary-Stroke-Disabled-Rest',
+            primary: 'bg-Primary-Background-Disabled-Rest text-Neutral-Foreground-Disabled-OnPrimary-Rest',
+        };
+
+        const enabledLayout = {
+            neutral: 'bg-Neutral-Background-1-Rest hover:bg-Neutral-Background-1-Hover active:bg-Neutral-Background-1-Pressed text-Neutral-Foreground-1-Rest outline outline-1 outline-Neutral-Stroke-1-Rest hover:outline-Neutral-Stroke-1-Hover active:outline-Neutral-Stroke-1-Pressed',
+            outline: 'bg-Neutral-Background-Subtle-Rest hover:bg-Neutral-Background-Subtle-Hover active:bg-Neutral-Background-Subtle-Pressed text-Neutral-Foreground-1-Rest outline outline-1 outline-Neutral-Stroke-1-Rest hover:outline-Neutral-Stroke-1-Hover active:outline-Neutral-Stroke-1-Pressed',
+            subtle: 'bg-Neutral-Background-Subtle-Rest hover:bg-Neutral-Background-Subtle-Hover active:bg-Neutral-Background-Subtle-Pressed text-Neutral-Foreground-1-Rest',
+            transparent: 'hover:bg-Primary-Background-2-Hover active:bg-Primary-Background-2-Pressed text-Neutral-Foreground-1-Rest hover:text-Neutral-Foreground-OnPrimary-Rest active:text-Neutral-Foreground-OnPrimary-Rest outline outline-1 outline-Primary-Stroke-1-Rest',
+            primary: 'bg-Primary-Background-1-Rest hover:bg-Primary-Background-1-Hover active:bg-Primary-Background-1-Pressed text-Neutral-Foreground-OnPrimary-Rest',
+        };
+
+        return (
+            <button onClick={onClick} disabled={disabled}
+                className={`select-none rounded flex flex-row place-items-center transition duration-100 ease-in-out 
+                ${disabled ? disabledLayout[layout] : enabledLayout[layout]} 
+                ${disabled && 'cursor-not-allowed'}`}>
+                <div className='rounded p-1.5 flex flex-row '>
+                    <div className={`flex justify-center size-5 ${headerVisible ? 'flex' : 'hidden'}`}>
+                        {headerIcon}
+                    </div>
+                    <div className={`px-1 py-0.5 text-LabelSmall ${labelVisible ? 'block' : 'hidden'}`}>
+                        {label}
+                    </div>
+                    <div className={`pr-0.5 py-0.5 ${fotterVisible ? 'flex' : 'hidden'}`}>
+                        {footerIcon}
+                    </div>
+                </div>
+            </button>
+        );
     };
-
-    const iconSize = {
-        medium: '',
-        large: 'p-0.5',
-        larger: 'p-0.5',
-    };
-
-    const textContainerSize = {
-        medium: 'pl-1.5 pr-2 text-LabelSmall',
-        large: 'pl-1 pr-1.5 text-LabelSmallProminent',
-        larger: 'pl-1 pr-1.5 text-LabelMediumProminent',
-    };
-
-    const buttonLayout = {
-        neutral: 'bg-N96 border border-N42 text-N16 hover:bg-N90 hover:border-N36 active:bg-N78 active:border-N24 disabled:bg-N88 disabled:border-N58 disabled:text-N16/60',
-        outline: 'border border-N42 text-N16 hover:bg-N16/8 hover:border-N42 active:bg-N16/24 active:border-N42 disabled:border-N58 disabled:text-N16/60',
-        subtle: 'text-N16 hover:bg-N16/8 active:bg-N16/24 disabled:text-N16/60',
-        transparent: 'text-P80 hover:text-P70 active:text-P50 disabled:text-P80',
-        primary: 'text-N96 bg-P80 hover:bg-P70 active:bg-P50 disabled:bg-S80 disabled:text-N72',
-    };
-
-    return (
-        <button onClick={onClick}
-            className={`rounded flex flex-row place-items-center transition duration-100 ease-in-out
-                        ${buttonSize[size]}
-                        ${buttonLayout[layout]}`}>
-
-            <div className={`flex justify-center
-                            ${iconSize[size]}
-                            ${headerVisible? 'flex' : 'hidden'}
-                            `}>
-                {headerIcon}
-            </div>
-            <div className={`${textContainerSize[size]} ${labelVisible ? 'block' : 'hidden'}`}>
-                {children}
-            </div>
-            <div className={`flex justify-center pt-[3px] pb-[1px]
-                            ${fotterVisible ? 'flex' : 'hidden'}`}>
-                <ChevronDown16Regular />
-            </div>
-        </button>
-    );
-};
 
 export default Button;

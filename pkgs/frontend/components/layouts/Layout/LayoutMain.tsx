@@ -7,11 +7,11 @@ export default function LayoutMain({
     children: React.ReactNode;
 }) {
     return (
-        <div className='max-w-full h-screen flex flex-row bg-N84'>
+        <div className='max-w-full h-screen flex flex-row bg-Neutral-Background-4-Rest'>
             <NavigationDrawer />
             <div className="w-full flex flex-col">
-                <div className="w-full h-1.5 bg-N84" />
-                <div className="w-full rounded-tl-lg px-8 py-2.5 bg-N88">
+                <div className="w-full min-h-1.5 bg-Neutral-Background-4-Rest" />
+                <div className="w-full rounded-tl-lg p-2 bg-Neutral-Background-3-Rest">
                     <Search />
                 </div>
                 {children}

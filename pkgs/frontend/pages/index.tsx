@@ -47,21 +47,24 @@ export default function Login() {
   }, [signMessageData, signUpData, loginData]);
 
   return (
-    <div className={`w-screen h-screen bg-HeroImage bg-cover text-N16`}>
-      <div className="w-full h-full p-20 flex items-center">
-        <div>
+    <div className={`w-screen h-screen 
+                    bg-HeroImageLight dark:bg-HeroImageDark bg-cover 
+                    text-Neutral-Foreground-1-Rest`}>
+      <div className="w-full h-full px-20 flex items-center">
+        <div className="flex flex-col">
           {globalContext.loading ? (
             <Loading />
           ) : (
             <>
-              <h1 className="py-12 text-DisplayLarge">
-                Welcome to Monas<span className="text-P90">.</span>
+              <h1 className="flex flex-row py-8 text-DisplayLarge">
+                Welcome to Monas
+                <span className="text-Primary-Foreground-1-Rest">.</span>
               </h1>
-              <p className="pb-10 text-HeadlineSmall">
-                Give you the power of data and <br />
-                the future is yours to decide!
-              </p>
-              <div className="space-y-2">
+              <div className="flex flex-col">
+                <p className="pb-6 text-HeadlineSmall">
+                  Give you the power of data and <br />
+                  the future is yours to decide!
+                </p>
                 <ConnectButton.Custom>
                   {({
                     account,
@@ -82,7 +85,10 @@ export default function Login() {
 
                     return (
                       <div
-                        className="w-fit text-LabelMediumProminent text-center [&_button]:rounded-full [&_button]:p-1.5 [&_button]:bg-P80 [&_button]:hover:bg-P70 [&_button]:active:bg-P50 [&_button]:disabled:bg-S80 text-N96 [&_button]:disabled:text-N72 [&_button]:w-72"
+                        className="w-fit rounded-full text-LabelMediumProminent text-center [&_button]:rounded-full [&_button]:p-1.5 
+                        bg-Primary-Background-1-Rest [&_button]:hover:bg-Primary-Background-1-Hover [&_button]:active:bg-Primary-Background-1-Pressed [&_button]:disabled:bg-Primary-Background-Disabled-Rest
+                        [&_button]:text-Neutral-Foreground-OnPrimary-Rest [&_button]:disabled:text-Neutral-Foreground-Disabled-OnPrimary-Rest
+                        [&_button]:w-72"
                         {...(!ready && {
                           "aria-hidden": true,
                           style: {
@@ -126,6 +132,8 @@ export default function Login() {
                   }}
                 </ConnectButton.Custom>
               </div>
+
+
             </>
           )}
         </div>

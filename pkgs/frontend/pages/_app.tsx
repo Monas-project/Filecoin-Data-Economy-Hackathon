@@ -1,3 +1,4 @@
+
 import { GlobalProvider } from "@/context/GlobalProvider";
 import { getEnv } from "@/utils/getEnv";
 import {
@@ -13,6 +14,7 @@ import { filecoinCalibration } from "wagmi/chains";
 import { publicProvider } from "wagmi/providers/public";
 import "../styles/globals.css";
 import { ResponseData } from "./api/env";
+import DarkMode from "@/components/layouts/DarkMode/DarkMode";
 
 /**
  * MyApp Component
@@ -35,11 +37,13 @@ function MyApp({ Component, pageProps }: AppProps) {
   let wagmiConfig: any;
 
   if (env != undefined) {
+
     const { connectors } = getDefaultWallets({
       appName: "Monas",
       projectId: env.WALLET_CONNECT_PROJECT_ID!,
       chains,
     });
+
     wagmiConfig = createConfig({
       autoConnect: true,
       connectors,
@@ -80,7 +84,9 @@ function MyApp({ Component, pageProps }: AppProps) {
             }}
           >
             <GlobalProvider>
-              <Component {...pageProps} />
+              <DarkMode>
+                <Component {...pageProps} />
+              </DarkMode>
             </GlobalProvider>
           </RainbowKitProvider>
         </WagmiConfig>

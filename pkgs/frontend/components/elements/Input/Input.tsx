@@ -3,153 +3,119 @@ import {
   Circle20Regular,
   ErrorCircle20Regular,
 } from "@fluentui/react-icons";
-import { ChangeEvent, FC, ReactNode, useState } from "react";
+import { ChangeEvent, FC, ReactNode, useRef, useState } from "react";
 
 type InputProps = {
   id: string;
-  headerVisible?: boolean;
-  headerIcon?: ReactNode;
-  label?: string;
-  fotterVisible?: boolean;
-  fotterIcon?: ReactNode;
+  labelVis?: boolean;
+  label: string;
+  placeholder?: string;
   helperTextVis?: boolean;
   helperText?: string;
+
+  headerIconVis?: boolean;
+  headerIcon?: ReactNode;
+  fotterIconVis?: boolean;
+  fotterIcon?: ReactNode;
+
   inputValue?: string;
   setInputValue?: any;
-  size?: "medium" | "large" | "larger";
-  layout?:
-    | "outlineLabel"
-    | "underlineLabel"
-    | "filledLighterLabel"
-    | "filledDarkerLabel"
-    | "outline"
-    | "underline"
-    | "filledLighter"
-    | "filledDarker";
+
+  layout?: "outline" | "filledLighter" | "filledDarker";
+  disabled?: boolean;
+  readOnly?: boolean;
 };
 
 const Input: FC<InputProps> = ({
   id,
-  headerVisible = false,
-  headerIcon = <Circle20Regular />,
+  labelVis = true,
   label = "Label",
-  fotterVisible = false,
-  fotterIcon = <ChevronDown20Regular />,
+  placeholder = "placeholder",
   helperTextVis = false,
-  inputValue = "",
-  setInputValue = () => {},
   helperText = "helper text",
-  size = "medium",
-  layout = "outlineLabel",
+
+  headerIconVis = false,
+  headerIcon = <Circle20Regular />,
+  fotterIconVis = false,
+  fotterIcon = <ChevronDown20Regular />,
+
+  inputValue = "",
+  setInputValue = () => { },
+
+  layout = "outline",
+  disabled = false,
+  readOnly = false,
 }) => {
   // const [inputValue, setInputValue] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   const [isError, setIsError] = useState(false);
 
+  const inputRef = useRef<HTMLInputElement>(null);
+
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     setInputValue(event.target.value);
     setIsFocused(event.target.value !== "");
+
+    setIsError(!isValidInput(event.target.value));
   };
 
-  const contentSize = {
-    medium: "px-1.5 py-0.5",
-    large: "px-2.5 py-1.5",
-    larger: "px-3 py-2",
+  const isValidInput = (input: string) => {
+    const regex = /^[a-zA-Z0-9]*$/;
+    return regex.test(input);
   };
 
-  const inputSize = {
-    medium: `py-2 text-BodySmall ${isFocused || inputValue ? "pt-4 pb-0" : ""}`,
-    large: `py-2.5 text-BodyMedium ${
-      isFocused || inputValue ? "pt-5 pb-1" : ""
-    }`,
-    larger: `py-3.5 text-BodyLarge ${
-      isFocused || inputValue ? "pt-7 pb-0" : ""
-    }`,
-  };
-
-  const labelSize = {
-    medium: `pl-4 ${
-      isFocused || inputValue ? "top0 h-fit pt-0.5" : "items-center"
-    }`,
-    large: `pl-5 ${
-      isFocused || inputValue ? "top0 h-fit pt-1.5" : "items-center"
-    }`,
-    larger: `pl-5 ${
-      isFocused || inputValue ? "top0 h-fit pt-2" : "items-center"
-    }`,
+  const handleClick = () => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
   };
 
   const contentLayout = {
-    outlineLabel: `bg-N96`,
-    underlineLabel: ``,
-    filledLighterLabel: `bg-N96`,
-    filledDarkerLabel: `bg-N88`,
-    outline: `bg-N96 `,
-    underline: ``,
-    filledLighter: `bg-N96`,
-    filledDarker: `bg-N88`,
+    outline: `outline outline-1 outline-Neutral-Stroke-1-Rest `,
+    filledLighter: `bg-Neutral-Background-1-Rest`,
+    filledDarker: `bg-Neutral-Background-3-Rest`,
   };
 
   return (
-    <div className="relative w-full flex flex-col space-y-1">
-      <div
-        className={`relative rounded text-N34
-                            ${contentLayout[layout]}`}
-      >
-        <label
-          className={`absolute flex w-full h-full text-LabelMedium
-                                ${labelSize[size]}
-                                ${isFocused ? "text-P80" : "text-N34"}`}
-          htmlFor={id}
-        >
-          {label}
-        </label>
-        <div
-          className={`rounded flex flex-row items-center space-x-6 border border-N54
-                                ${contentSize[size]}`}
-        >
-          <div className="flex flex-row items-center w-full space-x-2">
-            <div className={`${headerVisible ? "flex" : "hidden"}`}>
-              {headerIcon}
+    <div className={`w-full flex flex-col space-y-2 text-LabelMedium ${readOnly && 'cursor-default'}`}>
+      <label htmlFor={id} className={`text-Neutral-Foreground-1-Rest ${labelVis ? 'block' : 'hidden'}`}>{label}</label>
+      <div className={`rounded ${disabled ? 'text-Neutral-Foreground-Disabled-Rest' : 'text-Neutral-Foreground-5-Rest'}`}>
+        <div onClick={handleClick}
+          className={`rounded flex flex-row items-center space-x-5 px-2.5
+          ${contentLayout[layout]}
+          ${readOnly && isFocused ? 'outline-none outline-offset-0' : isFocused && 'outline outline-1 outline-Primary-Stroke-Compound-Rest'}
+          ${isFocused && isError ? 'outline outline-2 outline-Status-Danger-Stroke-1-Rest'
+              : isError && 'bg-Status-Danger-Background-2-Rest outline outline-1 outline-Status-Danger-Stroke-1-Rest'}
+          `}>
+          <div className="grow flex flex-row items-center">
+            <div className={`${headerIconVis ? 'block' : 'hidden'}`}>{headerIcon}</div>
+            <div className="grow space-x-1 p-2.5">
+              <input className={`w-full bg-transparent text-BodyLarge outline-none 
+                  ${disabled ?
+                  'text-Neutral-Foreground-Disabled-Rest placeholder:text-Neutral-Foreground-Disabled-Rest' :
+                  'text-Neutral-Foreground-1-Rest placeholder:text-Neutral-Foreground-5-Rest'}
+                  ${readOnly && 'placeholder:text-Neutral-Foreground-1-Rest cursor-default'}`}
+                disabled={disabled}
+                readOnly={readOnly}
+                id={id}
+                ref={inputRef}
+                onBlur={() => { setIsFocused(false); }}
+                onChange={(event) => { handleInputChange(event); }}
+                onFocus={() => { setIsFocused(true); }}
+                value={inputValue}
+                placeholder={placeholder}
+              />
             </div>
-            <input
-              onFocus={() => {
-                setIsFocused(true);
-              }}
-              onBlur={() => {
-                setIsFocused(false);
-              }}
-              onChange={(event) => {
-                handleInputChange(event);
-              }}
-              id={id}
-              value={inputValue}
-              className={`w-full bg-transparent outline-none text-N16
-                                    ${inputSize[size]}`}
-            />
           </div>
-          <div className="flex flex-row items-center space-x-1">
-            {isError ? (
-              <ErrorCircle20Regular className=" hidden text-E90" />
-            ) : (
-              ""
-            )}
-
-            <div className={`${fotterVisible ? "flex" : "hidden"}`}>
-              {fotterIcon}
+          <div className="flex flex-row space-x-1">
+            <div className={`text-Status-Danger-Foreground-1-Rest ${isError ? 'block' : 'hidden'}`}>
+              <ErrorCircle20Regular />
             </div>
+            <div className={`${fotterIconVis ? 'block' : 'hidden'}`}>{fotterIcon}</div>
           </div>
         </div>
-        <div
-          className={`absolute left-1/2 -translate-x-1/2 bottom-0 w-[99.5%] h-0.5 rounded-b-full 
-                                ${isFocused ? "bg-P80" : "bg-N16"}`}
-        />
       </div>
-      <span
-        className={`pl-3 text-BodySmall text-N28 ${
-          helperTextVis ? "block" : "hidden"
-        }`}
-      >
+      <span className={`break-words ${helperTextVis ? 'block' : 'hidden'} ${isError ? 'text-Status-Danger-Foreground-1-Rest' : 'text-Neutral-Foreground-Variant-Rest'}`}>
         {helperText}
       </span>
     </div>

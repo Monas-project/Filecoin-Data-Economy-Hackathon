@@ -1,5 +1,3 @@
-import exp from "constants";
-
 export function setupIndexedDB() {
   const request = indexedDB.open("KeyDatabase", 1);
 
@@ -38,7 +36,7 @@ export function addKey(key: string) {
       console.log("Key added successfully");
     };
 
-    transaction.onerror = function () {
+    transaction.onerror = function (event) {
       const target = event.target as IDBRequest;
       console.error("Transaction error:", target.error);
     };
@@ -58,7 +56,7 @@ return
 - key: string?
 */
 export function getKey(id: number, callback: (result: any) => void) {
-  const request = indexedDB.open("KyeDatabase", 1);
+  const request = indexedDB.open("KeyDatabase", 1);
 
   request.onsuccess = function (event) {
     const target = event.target as IDBOpenDBRequest;
@@ -68,7 +66,7 @@ export function getKey(id: number, callback: (result: any) => void) {
     const keyRequest = store.get(id);
 
     keyRequest.onsuccess = function (event) {
-      const target = event.target as IDBOpenDBRequest;
+      const target = event.target as IDBRequest;
       callback(target.result);
     };
     keyRequest.onerror = function (event) {
@@ -76,7 +74,7 @@ export function getKey(id: number, callback: (result: any) => void) {
     };
   };
   request.onerror = function (event) {
-    const target = event.target as IDBOpenDBRequest;
+    const target = event.target as IDBRequest;
     console.error("Database error:", target.error);
   };
 }

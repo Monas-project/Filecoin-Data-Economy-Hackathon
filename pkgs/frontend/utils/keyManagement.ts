@@ -5,7 +5,7 @@ export function setupIndexedDB() {
     const target = event.target as IDBOpenDBRequest;
     const db = target.result;
     if (!db.objectStoreNames.contains("keys")) {
-      db.createObjectStore("keys", { keyPath: "id", autoIncrement: true });
+      db.createObjectStore("keys", { keyPath: ["walletAddress", "cid"] });
     }
   };
   request.onerror = function (event) {
@@ -22,7 +22,7 @@ Add key operation
 引数
 - key: string
 */
-export function addKey(key: string) {
+export function addKey(walletAddress: string, cid: string, secretKey: string) {
   const request = indexedDB.open("KeyDatabase", 1);
 
   request.onsuccess = function (event) {
@@ -30,7 +30,7 @@ export function addKey(key: string) {
     const db = target.result;
     const transaction = db.transaction(["keys"], "readwrite");
     const store = transaction.objectStore("keys");
-    store.add({ key: key }); // store key
+    store.add({ walletAddress: walletAddress, cid: cid, secretKey: secretKey }); // store key
 
     transaction.oncomplete = function () {
       console.log("Key added successfully");
@@ -55,7 +55,11 @@ Call key operation
 return
 - key: string?
 */
-export function getKey(id: number, callback: (result: any) => void) {
+export function getKey(
+  walletAddress: string,
+  cid: string,
+  callback: (result: any) => void
+) {
   const request = indexedDB.open("KeyDatabase", 1);
 
   request.onsuccess = function (event) {
@@ -63,7 +67,7 @@ export function getKey(id: number, callback: (result: any) => void) {
     const db = target.result;
     const transaction = db.transaction(["keys"], "readonly");
     const store = transaction.objectStore("keys");
-    const keyRequest = store.get(id);
+    const keyRequest = store.get([walletAddress, cid]);
 
     keyRequest.onsuccess = function (event) {
       const target = event.target as IDBRequest;

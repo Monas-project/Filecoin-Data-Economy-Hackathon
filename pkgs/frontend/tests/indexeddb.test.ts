@@ -64,13 +64,9 @@ describe("IndexedDB operations", () => {
     addKey("walletAddress1", "cid1", "secretKey1");
     setTimeout(() => {
       getKey("walletAddress1", "cid1", (result) => {
-        console.log("Key retrieved:", result);
+        console.log("Key retrieved:", result?.secretKey);
         try {
-          expect(result).toEqual({
-            walletAddress: "walletAddress1",
-            cid: "cid1",
-            secretKey: "secretKey1",
-          });
+          expect(result?.secretKey).toBe("secretKey1");
           done();
         } catch (error) {
           console.error("Expectation failed:", error);

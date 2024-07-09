@@ -30,10 +30,35 @@ export function addKey(walletAddress: string, cid: string, secretKey: string) {
     const db = target.result;
     const transaction = db.transaction(["keys"], "readwrite");
     const store = transaction.objectStore("keys");
-    store.add({ walletAddress: walletAddress, cid: cid, secretKey: secretKey }); // store key
 
-    transaction.oncomplete = function () {
-      console.log("Key added successfully");
+    const getRequest = store.get([walletAddress, cid]);
+
+    getRequest.onsuccess = function (event) {
+      const result = (event.target as IDBRequest).result;
+
+      if (result) {
+        console.log("Record already exists, skipping addition:", result);
+        return;
+      }
+      const addRequest = store.add({
+        walletAddress: walletAddress,
+        cid: cid,
+        secretKey: secretKey,
+      });
+
+      addRequest.onsuccess = function () {
+        console.log("Key added successfully");
+      };
+
+      addRequest.onerror = function (event) {
+        const target = event.target as IDBRequest;
+        console.error("Add request error:", target.error);
+      };
+    };
+
+    getRequest.onerror = function (event) {
+      const target = event.target as IDBRequest;
+      console.error("Get request error:", target.error);
     };
 
     transaction.onerror = function (event) {
@@ -88,7 +113,7 @@ Delete key operation
 引数
 - id: number
 */
-export function deleteKey(id: number) {
+export function deleteKey(walletAddress: string, cid: string) {
   const request = indexedDB.open("KeyDatabase", 1);
 
   request.onsuccess = function (event) {
@@ -96,7 +121,7 @@ export function deleteKey(id: number) {
     const db = target.result;
     const transaction = db.transaction(["keys"], "readwrite");
     const store = transaction.objectStore("keys");
-    store.delete(id);
+    store.delete([walletAddress, cid]);
 
     transaction.oncomplete = function () {
       console.log("Key deleted successfully");

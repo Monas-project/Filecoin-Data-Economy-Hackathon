@@ -20,6 +20,6 @@
     "types": ["jest", "node"],
     "typeRoots": ["./types", "./node_modules/@types"]
   },
-  "include": ["next-env.d.ts", "utils/**/*.ts", "test/**/*.ts", "**/*.tsx"],
+  "include": ["next-env.d.ts", "utils/**/*.ts", "tests/**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules"]
 }

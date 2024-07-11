@@ -19,13 +19,17 @@ import base64
 # .envファイルの内容を読み込見込む
 load_dotenv()
 
-# 例: 環境変数 'TEST_ENV' が 'True' の場合にのみ実際の接続を行う
+# 例: 環境変数 'ENV' が 'True' の場合にのみ実際の接続を行う
 ipfs_host = os.getenv("IPFS_HOST", "localhost")
 ipfs_port = os.getenv("IPFS_PORT", "5001")
-if os.environ.get('TEST_ENV') == 'development':
+
+allow_origin = os.getenv("ALLOW_ORIGIN", "http://localhost:3000")
+if os.environ.get('ENV') == 'development':
     ipfs_client = IpfsClient(f'http://{ipfs_host}:{ipfs_port}')
-else:
+elif os.environ.get('ENV') == 'test':
     ipfs_client = FakeIPFS()  # テスト用の偽のIPFSクライアント
+else:
+    ipfs_client = IpfsClient(f'https://{ipfs_host}:{ipfs_port}')
 
 w3 = Web3()
 app = FastAPI()
@@ -41,7 +45,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # http://localhost:3000 のみを許可
+    allow_origins=[allow_origin],  # フロントエンドのURLを許可
     allow_credentials=True,
     allow_methods=["*"],  # すべてのHTTPメソッドを許可
     allow_headers=["*"],  # すべてのHTTPヘッダーを許可
@@ -76,7 +80,8 @@ def create_access_token(data: dict, expires_delta: timedelta = None):
 
 @router.get("/hello")
 async def hello():
-    return {"message": "Hello, World! This is Cryptree API."}
+    res = ipfs_client.add_bytes(b"Hello, World!!!!!")
+    return {"message": res}
 
 @router.post("/users/me")
 async def read_users_me(current_user: dict = Depends(get_current_user)):

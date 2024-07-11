@@ -4,3 +4,4 @@ cryptree
 ipfs/
 localstack/
 .vercel
+.env.production

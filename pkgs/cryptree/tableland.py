@@ -14,8 +14,8 @@ class Tableland:
     table_contract_address = os.getenv('TABLE_CONTRACT_ADDRESS')
     tableland_url = os.getenv('TABLELAND_URL')
     address_column = os.getenv('ADDRESS_COLUMN_NAME')
-    table_id = int(os.getenv('TABLE_ID'))
-    chain_id = int(os.getenv('CHAIN_ID'))
+    table_id = os.getenv('TABLE_ID')
+    chain_id = os.getenv('CHAIN_ID')
     root_table_name = f"users_{chain_id}_{table_id}"
 
     if not (infura_project_id and infura_base_url and private_key and table_contract_address):

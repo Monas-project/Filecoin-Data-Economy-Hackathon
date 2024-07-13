@@ -3,3 +3,5 @@ __pycache__
 cryptree
 ipfs/
 localstack/
+.vercel
+.env.production

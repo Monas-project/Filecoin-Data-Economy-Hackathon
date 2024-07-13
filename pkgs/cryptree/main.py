@@ -156,6 +156,26 @@ async def login(request: LoginRequest = Body(...)):
     else:
         raise HTTPException(status_code=401, detail="Invalid signature or address")
 
+@router.delete("/delete")
+async def delete_node(
+    node_id: str = Form(...),  # Retrieve the node ID to be deleted from the form data
+    current_user: dict = Depends(get_current_user)  # Retrieve current user information
+):
+    try:
+        # Retrieve the root node of the current user
+        root_node = CryptreeNode.get_node(current_user["root_id"], current_user["root_key"], ipfs_client)
+        # Find the parent node of the node to be deleted
+        parent_node = CryptreeNode.find_parent(node_id, root_node, ipfs_client)
+        # Return 400 error if parent node is not found
+        if not parent_node:
+            raise HTTPException(status_code=400, detail="Parent node not found")
+        # Delete the specified node
+        CryptreeNode.delete_node(node_id, ipfs_client, parent_node)
+        # Return success message
+        return {"message": "Node deleted successfully"}
+    except Exception as e:
+        # Return 500 error if an exception occurs
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/create")
 async def create(
